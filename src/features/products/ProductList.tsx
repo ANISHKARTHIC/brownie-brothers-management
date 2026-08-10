@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Search, Plus, Image as ImageIcon } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useDebounce } from '@/hooks/useDebounce'
 import type { Database } from '@/types/database.types'
 
@@ -16,6 +17,7 @@ interface ProductWithVariants extends Product {
 }
 
 export function ProductList() {
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const debouncedSearch = useDebounce(searchTerm, 300)
 
@@ -47,7 +49,7 @@ export function ProductList() {
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Products</h1>
           <p className="text-sm text-gray-500">Manage your catalog and variants.</p>
         </div>
-        <Button className="w-full sm:w-auto">
+        <Button onClick={() => navigate('/products/new')} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Add Product
         </Button>

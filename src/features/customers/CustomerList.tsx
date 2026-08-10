@@ -5,12 +5,14 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Search, Plus, Phone, Mail } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useDebounce } from '@/hooks/useDebounce'
 import type { Database } from '@/types/database.types'
 
 type Customer = Database['public']['Tables']['customers']['Row']
 
 export function CustomerList() {
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const debouncedSearch = useDebounce(searchTerm, 300)
 
@@ -39,7 +41,7 @@ export function CustomerList() {
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Customers</h1>
           <p className="text-sm text-gray-500">Manage your customer database.</p>
         </div>
-        <Button className="w-full sm:w-auto">
+        <Button onClick={() => navigate('/customers/new')} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Add Customer
         </Button>

@@ -10,6 +10,10 @@ import { ProductList } from '@/features/products/ProductList'
 import { OrderList } from '@/features/orders/OrderList'
 import { MoreMenu } from '@/features/settings/MoreMenu'
 
+import { CustomerForm } from '@/features/customers/CustomerForm'
+import { ProductForm } from '@/features/products/ProductForm'
+import { OrderForm } from '@/features/orders/OrderForm'
+
 const queryClient = new QueryClient()
 
 // Protected route wrapper
@@ -30,7 +34,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   
   return <>{children}</>
 }
-
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -46,8 +49,11 @@ export default function App() {
             }>
               <Route index element={<Dashboard />} />
               <Route path="orders" element={<OrderList />} />
+              <Route path="orders/new" element={<OrderForm />} />
               <Route path="customers" element={<CustomerList />} />
+              <Route path="customers/new" element={<CustomerForm />} />
               <Route path="products" element={<ProductList />} />
+              <Route path="products/new" element={<ProductForm />} />
               <Route path="more" element={<MoreMenu />} />
               {/* Feature routes will go here */}
             </Route>

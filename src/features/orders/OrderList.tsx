@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { Search, Plus, Filter } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useDebounce } from '@/hooks/useDebounce'
 import { format } from 'date-fns'
 
 export function OrderList() {
+  const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const debouncedSearch = useDebounce(searchTerm, 300)
   const [statusFilter, setStatusFilter] = useState<string>('ALL')
@@ -71,7 +73,7 @@ export function OrderList() {
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">Orders</h1>
           <p className="text-sm text-gray-500">Manage customer orders and status.</p>
         </div>
-        <Button className="w-full sm:w-auto">
+        <Button onClick={() => navigate('/orders/new')} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           Create Order
         </Button>

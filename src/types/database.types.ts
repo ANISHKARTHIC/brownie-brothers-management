@@ -149,8 +149,67 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: any
-        Update: any
+        Insert: {
+          id?: string
+          order_number?: number
+          customer_id?: string | null
+          status?: string
+          subtotal: number
+          discount?: number
+          delivery_fee?: number
+          total: number
+          payment_status?: string
+          delivery_type?: string
+          scheduled_time?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          order_number?: number
+          customer_id?: string | null
+          status?: string
+          subtotal?: number
+          discount?: number
+          delivery_fee?: number
+          total?: number
+          payment_status?: string
+          delivery_type?: string
+          scheduled_time?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      order_items: {
+        Row: {
+          id: string
+          order_id: string
+          product_variant_id: string
+          quantity: number
+          unit_price: number
+          total_price: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          order_id: string
+          product_variant_id: string
+          quantity?: number
+          unit_price: number
+          total_price: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          order_id?: string
+          product_variant_id?: string
+          quantity?: number
+          unit_price?: number
+          total_price?: number
+          created_at?: string
+        }
       }
       inventory_items: {
         Row: {
@@ -166,8 +225,32 @@ export interface Database {
           created_at: string
           updated_at: string
         }
-        Insert: any
-        Update: any
+        Insert: {
+          id?: string
+          name: string
+          category: string
+          unit: string
+          current_stock?: number
+          min_stock?: number
+          max_stock?: number | null
+          cost?: number | null
+          supplier_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          category?: string
+          unit?: string
+          current_stock?: number
+          min_stock?: number
+          max_stock?: number | null
+          cost?: number | null
+          supplier_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
       }
       // TODO: Add full table types as needed
     }
