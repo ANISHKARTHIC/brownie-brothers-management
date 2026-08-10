@@ -31,7 +31,7 @@ export function Dashboard() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      return data || []
+      return (data as any[]) || []
     }
   })
 
@@ -47,7 +47,7 @@ export function Dashboard() {
 
       if (error) throw error
       // Filter manually as Supabase doesn't easily do column-to-column comparison in standard select without RPC
-      return (data || []).filter(item => item.current_stock <= item.min_stock)
+      return ((data as any[]) || []).filter(item => item.current_stock <= item.min_stock)
     }
   })
 

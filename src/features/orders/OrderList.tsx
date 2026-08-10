@@ -7,9 +7,6 @@ import { Search, Plus, Filter } from 'lucide-react'
 import { useState } from 'react'
 import { useDebounce } from '@/hooks/useDebounce'
 import { format } from 'date-fns'
-import type { Database } from '@/types/database.types'
-
-type Order = Database['public']['Tables']['orders']['Row']
 
 export function OrderList() {
   const [searchTerm, setSearchTerm] = useState('')

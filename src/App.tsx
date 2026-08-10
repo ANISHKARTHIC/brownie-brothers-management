@@ -7,6 +7,8 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { Dashboard } from '@/features/dashboard/Dashboard'
 import { CustomerList } from '@/features/customers/CustomerList'
 import { ProductList } from '@/features/products/ProductList'
+import { OrderList } from '@/features/orders/OrderList'
+import { MoreMenu } from '@/features/settings/MoreMenu'
 
 const queryClient = new QueryClient()
 
@@ -43,8 +45,10 @@ export default function App() {
               </ProtectedRoute>
             }>
               <Route index element={<Dashboard />} />
+              <Route path="orders" element={<OrderList />} />
               <Route path="customers" element={<CustomerList />} />
               <Route path="products" element={<ProductList />} />
+              <Route path="more" element={<MoreMenu />} />
               {/* Feature routes will go here */}
             </Route>
           </Routes>

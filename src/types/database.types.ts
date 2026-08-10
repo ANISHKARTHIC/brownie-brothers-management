@@ -34,6 +34,7 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+
       }
       customers: {
         Row: {
@@ -130,6 +131,43 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+      }
+      orders: {
+        Row: {
+          id: string
+          order_number: number
+          customer_id: string | null
+          status: string
+          subtotal: number
+          discount: number
+          delivery_fee: number
+          total: number
+          payment_status: string
+          delivery_type: string
+          scheduled_time: string | null
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: any
+        Update: any
+      }
+      inventory_items: {
+        Row: {
+          id: string
+          name: string
+          category: string
+          unit: string
+          current_stock: number
+          min_stock: number
+          max_stock: number | null
+          cost: number | null
+          supplier_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: any
+        Update: any
       }
       // TODO: Add full table types as needed
     }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -51,9 +51,10 @@ export function Login() {
         setError("This email is already registered. Please sign in instead.")
       } else if (signUpData.user) {
         // Automatically insert a profile for the new user as OWNER for testing purposes
-        const { error: profileError } = await supabase
+        // Automatically insert a profile for the new user as OWNER for testing purposes
+        const { error: profileError } = await (supabase
           .from('profiles')
-          .insert([
+          .insert as any)([
             { 
               id: signUpData.user.id, 
               role: 'OWNER', 
