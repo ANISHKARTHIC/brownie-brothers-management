@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #8b5a2b; /* Brownie theme primary color */
+  --color-primary-dark: #6b4423;
+  --color-secondary: #f4e8d8;
+  
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #fafafa;
+  color: #333333;
+}
