@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/features/auth/AuthContext'
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -18,6 +20,15 @@ export function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isSignUp, setIsSignUp] = useState(false)
+  
+  const navigate = useNavigate()
+  const { session } = useAuth()
+  
+  useEffect(() => {
+    if (session) {
+      navigate('/', { replace: true })
+    }
+  }, [session, navigate])
   
   const { register, handleSubmit, formState: { errors }, reset } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema)
