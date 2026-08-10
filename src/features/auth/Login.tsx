@@ -33,54 +33,60 @@ export function Login() {
     setIsLoading(true)
     setError(null)
     
-    if (isSignUp) {
-      // Handle Sign Up
-      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-        email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            full_name: data.fullName || 'New User',
-          }
-        }
-      })
-
-      if (signUpError) {
-        setError(signUpError.message)
-      } else if (signUpData.user?.identities?.length === 0) {
-        setError("This email is already registered. Please sign in instead.")
-      } else if (signUpData.user) {
-        // Automatically insert a profile for the new user as OWNER for testing purposes
-        // Automatically insert a profile for the new user as OWNER for testing purposes
-        const { error: profileError } = await (supabase
-          .from('profiles')
-          .insert as any)([
-            { 
-              id: signUpData.user.id, 
-              role: 'OWNER', 
-              full_name: data.fullName || 'New User' 
+    try {
+      if (isSignUp) {
+        // Handle Sign Up
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password,
+          options: {
+            data: {
+              full_name: data.fullName || 'New User',
             }
-          ])
-          
-        if (profileError) {
-          console.error("Profile creation error:", profileError)
-          // Don't block the UI for profile errors during dev
-        }
-        
-        setError("Account created! If you have 'Confirm email' enabled in Supabase, please check your inbox. Otherwise, you can now sign in.")
-        // Switch to sign in mode
-        setIsSignUp(false)
-      }
-    } else {
-      // Handle Sign In
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: data.email,
-        password: data.password,
-      })
+          }
+        })
 
-      if (signInError) {
-        setError(signInError.message)
+        if (signUpError) {
+          setError(signUpError.message)
+        } else if (signUpData.user?.identities?.length === 0) {
+          setError("This email is already registered. Please sign in instead.")
+        } else if (signUpData.user) {
+          // Automatically insert a profile for the new user as OWNER for testing purposes
+          try {
+            const { error: profileError } = await (supabase
+              .from('profiles')
+              .insert as any)([
+                { 
+                  id: signUpData.user.id, 
+                  role: 'OWNER', 
+                  full_name: data.fullName || 'New User' 
+                }
+              ])
+              
+            if (profileError) {
+              console.error("Profile creation error:", profileError)
+            }
+          } catch (e) {
+            console.error("Profile creation exception:", e)
+          }
+          
+          setError("Account created! If you have 'Confirm email' enabled in Supabase, please check your inbox. Otherwise, you can now sign in.")
+          setIsSignUp(false)
+        }
+      } else {
+        // Handle Sign In
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
+        })
+
+        if (signInError) {
+          setError(signInError.message)
+        }
       }
+    } catch (err: any) {
+      console.error("Authentication exception:", err)
+      setError(err?.message || "A network error occurred. Please disable adblockers or extensions and try again.")
     }
     
     setIsLoading(false)
