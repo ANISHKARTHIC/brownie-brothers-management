@@ -3,9 +3,11 @@ import { supabase } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { useAuth } from '@/features/auth/AuthContext'
 import { startOfDay, endOfDay } from 'date-fns'
+import { useNavigate } from 'react-router-dom'
 
 export function Dashboard() {
   const { profile } = useAuth()
+  const navigate = useNavigate()
 
   // Fetch today's orders
   const { data: todayOrders, isLoading: isLoadingOrders } = useQuery({
@@ -127,7 +129,11 @@ export function Dashboard() {
                 <p className="text-gray-500 text-sm">No orders yet today.</p>
               ) : (
                 todayOrders?.slice(0, 5).map(order => (
-                  <div key={order.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
+                  <div 
+                    key={order.id} 
+                    className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0 hover:bg-gray-50 cursor-pointer rounded-lg p-2 transition-colors"
+                    onClick={() => navigate(`/orders/${order.id}`)}
+                  >
                     <div>
                       <p className="font-medium">#{order.order_number} - {(order.customers as any)?.name || 'Unknown'}</p>
                       <p className="text-sm text-gray-500">₹{order.total}</p>

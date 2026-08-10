@@ -8,11 +8,14 @@ import { Dashboard } from '@/features/dashboard/Dashboard'
 import { CustomerList } from '@/features/customers/CustomerList'
 import { ProductList } from '@/features/products/ProductList'
 import { OrderList } from '@/features/orders/OrderList'
+import { OrderForm } from '@/features/orders/OrderForm'
+import { OrderDetails } from '@/features/orders/OrderDetails'
 import { MoreMenu } from '@/features/settings/MoreMenu'
 
 import { CustomerForm } from '@/features/customers/CustomerForm'
+import { CustomerDetails } from '@/features/customers/CustomerDetails'
 import { ProductForm } from '@/features/products/ProductForm'
-import { OrderForm } from '@/features/orders/OrderForm'
+import { ProductDetails } from '@/features/products/ProductDetails'
 
 const queryClient = new QueryClient()
 
@@ -34,6 +37,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   
   return <>{children}</>
 }
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -50,10 +54,13 @@ export default function App() {
               <Route index element={<Dashboard />} />
               <Route path="orders" element={<OrderList />} />
               <Route path="orders/new" element={<OrderForm />} />
+              <Route path="orders/:id" element={<OrderDetails />} />
               <Route path="customers" element={<CustomerList />} />
               <Route path="customers/new" element={<CustomerForm />} />
+              <Route path="customers/:id" element={<CustomerDetails />} />
               <Route path="products" element={<ProductList />} />
               <Route path="products/new" element={<ProductForm />} />
+              <Route path="products/:id" element={<ProductDetails />} />
               <Route path="more" element={<MoreMenu />} />
               {/* Feature routes will go here */}
             </Route>

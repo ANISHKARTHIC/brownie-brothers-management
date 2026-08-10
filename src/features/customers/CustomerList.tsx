@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import { Search, Plus, Phone, Mail } from 'lucide-react'
+import { Search, Plus, Phone, Mail, User } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -72,16 +72,23 @@ export function CustomerList() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {customers?.map((customer) => (
-            <Card key={customer.id} className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card 
+              key={customer.id} 
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => navigate(`/customers/${customer.id}`)}
+            >
               <CardContent className="p-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{customer.name}</h3>
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 bg-gray-100 rounded-full flex items-center justify-center">
+                    <User className="h-6 w-6 text-gray-500" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-gray-900 truncate">{customer.name}</h3>
                     {customer.phone && (
-                      <div className="flex items-center text-sm text-gray-500 mt-2">
-                        <Phone className="mr-2 h-4 w-4" />
+                      <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                        <Phone className="h-3 w-3" />
                         {customer.phone}
-                      </div>
+                      </p>
                     )}
                     {customer.email && (
                       <div className="flex items-center text-sm text-gray-500 mt-1">

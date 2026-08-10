@@ -123,7 +123,11 @@ export function OrderList() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {orders?.map((order) => (
-            <Card key={order.id} className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card 
+              key={order.id} 
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => navigate(`/orders/${order.id}`)}
+            >
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>

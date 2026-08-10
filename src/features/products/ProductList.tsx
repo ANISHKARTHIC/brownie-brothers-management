@@ -80,7 +80,11 @@ export function ProductList() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {products?.map((product) => (
-            <Card key={product.id} className="hover:shadow-md transition-shadow cursor-pointer overflow-hidden">
+            <Card 
+              key={product.id} 
+              className={`hover:shadow-md transition-shadow cursor-pointer overflow-hidden ${!product.is_active ? 'opacity-60' : ''}`}
+              onClick={() => navigate(`/products/${product.id}`)}
+            >
               <div className="flex h-32 w-full items-center justify-center bg-gray-100">
                 {product.image_url ? (
                   <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
