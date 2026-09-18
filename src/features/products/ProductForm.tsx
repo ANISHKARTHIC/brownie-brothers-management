@@ -7,6 +7,8 @@ import { ArrowLeft } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import toast from 'react-hot-toast'
+import { useQueryClient } from '@tanstack/react-query'
 
 const productSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -18,6 +20,7 @@ type ProductFormValues = z.infer<typeof productSchema>
 
 export function ProductForm() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -68,10 +71,13 @@ export function ProductForm() {
       if (variantError) throw variantError
       
       // Navigate back on success
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      toast.success('Product created successfully!')
       navigate('/products')
     } catch (err: any) {
       console.error('Error creating product:', err)
       setError(err.message || 'Failed to create product')
+      toast.error(err.message || 'Failed to create product')
     } finally {
       setIsSubmitting(false)
     }
