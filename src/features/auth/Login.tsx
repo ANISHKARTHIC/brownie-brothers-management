@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth/AuthContext'
-
+import { Cookie } from 'lucide-react'
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
@@ -107,9 +107,12 @@ export function Login() {
     <div className="min-h-screen bg-[#fafafa] flex flex-col justify-center p-6">
       <div className="w-full max-w-md mx-auto space-y-8">
         <div className="text-center space-y-2">
-          <div className="text-4xl mb-4">🍫</div>
+          <div className="flex justify-center mb-4">
+            <img src="/logo.png" alt="Logo" className="h-16 w-auto object-contain mx-auto" onError={(e) => { e.currentTarget.style.display = "none"; if(e.currentTarget.nextElementSibling) (e.currentTarget.nextElementSibling as HTMLElement).style.display = "block"; }} />
+            <Cookie className="h-12 w-12 text-[#8b5a2b] hidden" />
+          </div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900">
-            Brownie Business
+            Brownie Brothers
           </h1>
           <p className="text-gray-500">
             {isSignUp ? 'Create a new account.' : 'Manage your business from anywhere.'}

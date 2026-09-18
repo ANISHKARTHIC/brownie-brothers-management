@@ -1,11 +1,12 @@
 import { Outlet, NavLink } from 'react-router-dom'
-import { Home, ClipboardList, Package, Users, Menu } from 'lucide-react'
+import { Home, ClipboardList, Package, Users, Menu, Cookie } from 'lucide-react'
 
 export function AppLayout() {
   const navItems = [
     { name: 'Home', path: '/', icon: Home },
     { name: 'Orders', path: '/orders', icon: ClipboardList },
-    { name: 'Stock', path: '/products', icon: Package },
+    { name: 'Products', path: '/products', icon: Cookie },
+    { name: 'Stock', path: '/inventory', icon: Package },
     { name: 'Customers', path: '/customers', icon: Users },
     { name: 'More', path: '/more', icon: Menu },
   ]
@@ -14,8 +15,10 @@ export function AppLayout() {
     <div className="flex h-screen w-full flex-col bg-[#fafafa] md:flex-row">
       {/* Desktop Sidebar (hidden on mobile) */}
       <aside className="hidden w-64 flex-col border-r bg-white md:flex">
-        <div className="flex h-16 items-center px-6 text-xl font-bold text-[#8b5a2b]">
-          🍫 Brownie
+        <div className="flex h-16 items-center px-6 text-xl font-bold text-[#8b5a2b] gap-2">
+          <img src="/logo.png" alt="Logo" className="h-8 w-8 object-contain" onError={(e) => { e.currentTarget.style.display = "none"; if(e.currentTarget.nextElementSibling) (e.currentTarget.nextElementSibling as HTMLElement).style.display = "block"; }} />
+          <Cookie className="h-6 w-6 hidden" />
+          Brownie Brothers
         </div>
         <nav className="flex-1 space-y-1 p-4">
           {navItems.map((item) => (

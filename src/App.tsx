@@ -7,10 +7,13 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { Dashboard } from '@/features/dashboard/Dashboard'
 import { CustomerList } from '@/features/customers/CustomerList'
 import { ProductList } from '@/features/products/ProductList'
+import { InventoryList } from '@/features/inventory/InventoryList'
+import { Toaster } from 'react-hot-toast'
 import { OrderList } from '@/features/orders/OrderList'
 import { OrderForm } from '@/features/orders/OrderForm'
 import { OrderDetails } from '@/features/orders/OrderDetails'
 import { MoreMenu } from '@/features/settings/MoreMenu'
+import { ComingSoon } from '@/components/layout/ComingSoon'
 
 import { CustomerForm } from '@/features/customers/CustomerForm'
 import { CustomerDetails } from '@/features/customers/CustomerDetails'
@@ -41,6 +44,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      <Toaster position="top-center" />
       <AuthProvider>
         <BrowserRouter>
           <Routes>
@@ -59,10 +63,19 @@ export default function App() {
               <Route path="customers/new" element={<CustomerForm />} />
               <Route path="customers/:id" element={<CustomerDetails />} />
               <Route path="products" element={<ProductList />} />
+              <Route path="inventory" element={<InventoryList />} />
               <Route path="products/new" element={<ProductForm />} />
               <Route path="products/:id" element={<ProductDetails />} />
               <Route path="more" element={<MoreMenu />} />
-              {/* Feature routes will go here */}
+              
+              <Route path="production" element={<ComingSoon title="Production" />} />
+              <Route path="payments" element={<ComingSoon title="Payments" />} />
+              <Route path="deliveries" element={<ComingSoon title="Deliveries" />} />
+              <Route path="expenses" element={<ComingSoon title="Expenses" />} />
+              <Route path="reports" element={<ComingSoon title="Reports" />} />
+              <Route path="staff" element={<ComingSoon title="Staff Management" />} />
+              <Route path="settings" element={<ComingSoon title="Settings" />} />
+
             </Route>
           </Routes>
         </BrowserRouter>

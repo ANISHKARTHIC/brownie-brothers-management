@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import type { Database } from '@/types/database.types'
 
 type Customer = Database['public']['Tables']['customers']['Row']
@@ -28,6 +29,7 @@ export function OrderForm() {
   const [error, setError] = useState<string | null>(null)
   
   const [customerId, setCustomerId] = useState<string>('')
+  const [walkInName, setWalkInName] = useState<string>('')
   const [items, setItems] = useState<OrderItemInput[]>([])
   const [deliveryType, setDeliveryType] = useState('PICKUP')
   const [paymentStatus, setPaymentStatus] = useState('PENDING')
@@ -82,6 +84,11 @@ export function OrderForm() {
     setItems(prev => prev.filter(i => i.variantId !== variantId))
   }
 
+  const handleUpdateUnitPrice = (variantId: string, unitPrice: number) => {
+    if (unitPrice < 0) return
+    setItems(prev => prev.map(i => i.variantId === variantId ? { ...i, unitPrice } : i))
+  }
+
   const handleUpdateQuantity = (variantId: string, quantity: number) => {
     if (quantity < 1) return
     setItems(prev => prev.map(i => i.variantId === variantId ? { ...i, quantity } : i))
@@ -98,12 +105,28 @@ export function OrderForm() {
     setError(null)
 
     try {
+      let finalCustomerId = customerId || null;
+      
+      // If walk-in customer with a name, create a new customer record
+      if (!finalCustomerId && walkInName.trim() !== '') {
+        const { data: newCust, error: custError } = await supabase
+          .from('customers')
+          .insert([{ name: walkInName.trim() }] as any)
+          .select()
+          .single();
+          
+        if (custError) throw custError;
+        if (newCust) {
+          finalCustomerId = (newCust as any).id;
+        }
+      }
+
       // Create Order
       const { data, error: orderError } = await supabase
         .from('orders')
         .insert([
           {
-            customer_id: customerId || null,
+            customer_id: finalCustomerId,
             status: 'PENDING',
             subtotal,
             discount,
@@ -136,11 +159,30 @@ export function OrderForm() {
         .insert(orderItems as any)
 
       if (itemsError) throw itemsError
+
+      // If Paid, create a payment record
+      if (paymentStatus === 'PAID') {
+        const { error: paymentError } = await supabase
+          .from('payments')
+          .insert([
+            {
+              order_id: orderData.id,
+              amount: total,
+              payment_method: 'CASH', // Default for now
+              status: 'COMPLETED' // Assume completed if marked PAID
+            }
+          ] as any)
+          
+        if (paymentError) console.error("Could not record payment:", paymentError)
+      }
+      
+      toast.success('Order created successfully!')
       
       navigate('/orders')
     } catch (err: any) {
       console.error('Error creating order:', err)
       setError(err.message || 'Failed to create order')
+      toast.error('Failed to create order.')
     } finally {
       setIsSubmitting(false)
     }
@@ -168,16 +210,28 @@ export function OrderForm() {
             <h2 className="text-lg font-semibold border-b pb-2">Customer Info</h2>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Customer (Optional)</label>
-              <select 
-                value={customerId} 
-                onChange={e => setCustomerId(e.target.value)}
-                className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5a2b]"
-              >
-                <option value="">Walk-in Customer</option>
-                {customers?.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+              <div className="space-y-2">
+                <select 
+                  value={customerId} 
+                  onChange={e => {
+                    setCustomerId(e.target.value);
+                    if (e.target.value !== '') setWalkInName('');
+                  }}
+                  className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5a2b]"
+                >
+                  <option value="">Walk-in Customer</option>
+                  {customers?.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+                {customerId === '' && (
+                  <Input 
+                    placeholder="Walk-in Customer Name (Optional)"
+                    value={walkInName}
+                    onChange={e => setWalkInName(e.target.value)}
+                  />
+                )}
+              </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
@@ -245,7 +299,18 @@ export function OrderForm() {
                   <div key={item.variantId} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border">
                     <div className="flex-1">
                       <p className="font-medium text-sm">{item.name}</p>
-                      <p className="text-sm text-gray-500">₹{item.unitPrice} each</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-sm text-gray-500">₹</span>
+                        <Input 
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={item.unitPrice}
+                          onChange={e => handleUpdateUnitPrice(item.variantId, parseFloat(e.target.value) || 0)}
+                          className="w-24 h-8 text-sm"
+                        />
+                        <span className="text-sm text-gray-500">each</span>
+                      </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <Input 
