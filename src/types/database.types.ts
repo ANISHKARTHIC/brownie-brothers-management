@@ -137,6 +137,7 @@ export interface Database {
           id: string
           order_number: number
           customer_id: string | null
+          staff_id: string | null
           status: string
           subtotal: number
           discount: number
@@ -153,6 +154,7 @@ export interface Database {
           id?: string
           order_number?: number
           customer_id?: string | null
+          staff_id?: string | null
           status?: string
           subtotal: number
           discount?: number

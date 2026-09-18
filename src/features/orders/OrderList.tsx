@@ -21,7 +21,8 @@ export function OrderList() {
         .from('orders')
         .select(`
           *,
-          customers ( name )
+          customers ( name ),
+          profiles ( full_name )
         `)
         .order('created_at', { ascending: false })
 
@@ -146,7 +147,7 @@ export function OrderList() {
                           #{order.order_number.toString().slice(-3)}
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-900">{(order.customers as any)?.name || 'Walk-in'}</div>
+                          <div className="font-semibold text-gray-900">{(order.customers as any)?.name || 'Walk-in'} <span className="text-xs text-gray-400 font-normal ml-2">Added by {(order.profiles as any)?.full_name || 'Staff'}</span></div>
                           <div className="text-xs text-gray-400 mt-0.5">{order.delivery_type}</div>
                         </div>
                       </div>

@@ -17,6 +17,7 @@ import { OrderDetails } from '@/features/orders/OrderDetails'
 import { MoreMenu } from '@/features/settings/MoreMenu'
 import { ComingSoon } from '@/components/layout/ComingSoon'
 import { PreparationBoard } from '@/features/production/PreparationBoard'
+import { Settings } from '@/features/settings/Settings'
 
 import { CustomerForm } from '@/features/customers/CustomerForm'
 import { CustomerDetails } from '@/features/customers/CustomerDetails'
@@ -42,7 +43,8 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace />
   }
   
-  if (!isUnlocked) {
+  const pinEnabled = localStorage.getItem('brownie_pin_enabled') === 'true'
+  if (pinEnabled && !isUnlocked) {
     return <PinLock onUnlock={() => setIsUnlocked(true)} />
   }
   
@@ -82,7 +84,7 @@ export default function App() {
               <Route path="expenses" element={<ComingSoon title="Expenses" />} />
               <Route path="reports" element={<ComingSoon title="Reports" />} />
               <Route path="staff" element={<ComingSoon title="Staff Management" />} />
-              <Route path="settings" element={<ComingSoon title="Settings" />} />
+              <Route path="settings" element={<Settings />} />
 
             </Route>
           </Routes>

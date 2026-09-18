@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useAuth } from '@/features/auth/AuthContext'
 import type { Database } from '@/types/database.types'
 
 type Customer = Database['public']['Tables']['customers']['Row']
@@ -24,6 +25,7 @@ interface OrderItemInput {
 }
 
 export function OrderForm() {
+  const { session } = useAuth()
   const navigate = useNavigate()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -127,6 +129,7 @@ export function OrderForm() {
         .insert([
           {
             customer_id: finalCustomerId,
+            staff_id: session?.user?.id,
             status: 'PENDING',
             subtotal,
             discount,
