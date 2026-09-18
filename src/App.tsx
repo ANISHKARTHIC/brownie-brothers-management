@@ -14,6 +14,7 @@ import { OrderForm } from '@/features/orders/OrderForm'
 import { OrderDetails } from '@/features/orders/OrderDetails'
 import { MoreMenu } from '@/features/settings/MoreMenu'
 import { ComingSoon } from '@/components/layout/ComingSoon'
+import { PreparationBoard } from '@/features/production/PreparationBoard'
 
 import { CustomerForm } from '@/features/customers/CustomerForm'
 import { CustomerDetails } from '@/features/customers/CustomerDetails'
@@ -68,7 +69,7 @@ export default function App() {
               <Route path="products/:id" element={<ProductDetails />} />
               <Route path="more" element={<MoreMenu />} />
               
-              <Route path="production" element={<ComingSoon title="Production" />} />
+              <Route path="production" element={<PreparationBoard />} />
               <Route path="payments" element={<ComingSoon title="Payments" />} />
               <Route path="deliveries" element={<ComingSoon title="Deliveries" />} />
               <Route path="expenses" element={<ComingSoon title="Expenses" />} />
