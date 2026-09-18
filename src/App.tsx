@@ -18,6 +18,7 @@ import { MoreMenu } from '@/features/settings/MoreMenu'
 import { ComingSoon } from '@/components/layout/ComingSoon'
 import { PreparationBoard } from '@/features/production/PreparationBoard'
 import { Settings } from '@/features/settings/Settings'
+import { Reports } from '@/features/settings/Reports'
 
 import { CustomerForm } from '@/features/customers/CustomerForm'
 import { CustomerDetails } from '@/features/customers/CustomerDetails'
@@ -82,7 +83,7 @@ export default function App() {
               <Route path="payments" element={<ComingSoon title="Payments" />} />
               <Route path="deliveries" element={<ComingSoon title="Deliveries" />} />
               <Route path="expenses" element={<ComingSoon title="Expenses" />} />
-              <Route path="reports" element={<ComingSoon title="Reports" />} />
+              <Route path="reports" element={<Reports />} />
               <Route path="staff" element={<ComingSoon title="Staff Management" />} />
               <Route path="settings" element={<Settings />} />
 
