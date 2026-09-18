@@ -2,6 +2,8 @@ import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from '@/features/auth/AuthContext'
+import { PinLock } from '@/features/auth/PinLock'
+import { useState } from 'react'
 import { Login } from '@/features/auth/Login'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Dashboard } from '@/features/dashboard/Dashboard'
@@ -26,6 +28,7 @@ const queryClient = new QueryClient()
 // Protected route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, isLoading } = useAuth()
+  const [isUnlocked, setIsUnlocked] = useState(false)
   
   if (isLoading) {
     return (
@@ -37,6 +40,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   
   if (!session) {
     return <Navigate to="/login" replace />
+  }
+  
+  if (!isUnlocked) {
+    return <PinLock onUnlock={() => setIsUnlocked(true)} />
   }
   
   return <>{children}</>

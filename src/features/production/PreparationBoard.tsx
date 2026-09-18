@@ -18,7 +18,7 @@ function OrderTimer({ createdAt }: { createdAt: string }) {
     const updateTimer = () => {
       const diffInSeconds = Math.floor((new Date().getTime() - new Date(createdAt).getTime()) / 1000)
       
-      if (diffInSeconds < 0) return
+      if (diffInSeconds < 0) { setElapsed('0m 0s'); return; }
       
       const m = Math.floor(diffInSeconds / 60)
       const s = diffInSeconds % 60
@@ -70,7 +70,6 @@ export function PreparationBoard() {
           order_items (
             id,
             quantity,
-            notes,
             product_variants (
               name,
               products ( name )
@@ -256,9 +255,7 @@ function OrderCard({ order, onAction, actionText, actionIcon, buttonClass }: any
                 {item.product_variants?.name !== 'Default' && (
                   <span className="text-gray-500 ml-1">({item.product_variants?.name})</span>
                 )}
-                {item.notes && (
-                  <p className="text-xs text-orange-600 mt-0.5 italic ml-5">Note: {item.notes}</p>
-                )}
+                
               </div>
             </li>
           ))}
