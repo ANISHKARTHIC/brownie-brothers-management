@@ -13,8 +13,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'Brownie Business',
-        short_name: 'Brownie',
+        name: 'Brownie Brothers',
+        short_name: 'Brownie Brothers',
         description: 'Internal business management PWA for the brownie business',
         theme_color: '#8b5a2b',
         icons: [

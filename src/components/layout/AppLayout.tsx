@@ -41,12 +41,12 @@ export function AppLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-auto pb-16 md:pb-0">
+      <main className="flex-1 overflow-auto pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0 pt-[env(safe-area-inset-top)]">
         <Outlet />
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 border-t bg-white pb-safe md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t bg-white md:hidden items-center justify-between px-2 pt-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))] min-h-[calc(4rem+env(safe-area-inset-bottom))]">
         {navItems.map((item) => (
           <NavLink
             key={item.name}
