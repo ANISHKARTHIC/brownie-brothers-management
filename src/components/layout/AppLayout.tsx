@@ -1,12 +1,12 @@
 import { Outlet, NavLink } from 'react-router-dom'
-import { Home, ClipboardList, Package, Users, Menu, Cookie } from 'lucide-react'
+import { Home, ClipboardList, Users, Menu, Cookie, ChefHat } from 'lucide-react'
 
 export function AppLayout() {
   const navItems = [
     { name: 'Home', path: '/', icon: Home },
     { name: 'Orders', path: '/orders', icon: ClipboardList },
     { name: 'Products', path: '/products', icon: Cookie },
-    { name: 'Stock', path: '/inventory', icon: Package },
+    { name: 'Prep', path: '/production', icon: ChefHat },
     { name: 'Customers', path: '/customers', icon: Users },
     { name: 'More', path: '/more', icon: Menu },
   ]
