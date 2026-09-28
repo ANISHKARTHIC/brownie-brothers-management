@@ -18,6 +18,7 @@ import { MoreMenu } from '@/features/settings/MoreMenu'
 import { ComingSoon } from '@/components/layout/ComingSoon'
 import { PreparationBoard } from '@/features/production/PreparationBoard'
 import { Settings } from '@/features/settings/Settings'
+import { ProfileSetup } from '@/features/auth/ProfileSetup'
 import { Reports } from '@/features/settings/Reports'
 import { Accounts } from '@/features/accounts/Accounts'
 
@@ -30,7 +31,7 @@ const queryClient = new QueryClient()
 
 // Protected route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, isLoading } = useAuth()
+  const { session, profile, isLoading } = useAuth()
   const [isUnlocked, setIsUnlocked] = useState(false)
   
   if (isLoading) {
@@ -43,6 +44,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   
   if (!session) {
     return <Navigate to="/login" replace />
+  }
+
+  // Force profile completion if missing
+  if (!profile || !profile.full_name) {
+    return <ProfileSetup onComplete={() => window.location.reload()} />
   }
   
   const pinEnabled = localStorage.getItem('brownie_pin_enabled') === 'true'
