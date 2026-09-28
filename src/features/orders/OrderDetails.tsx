@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { ArrowLeft, MapPin, Phone, User, Package, Clock, XCircle } from 'lucide-react'
+import { ArrowLeft, MapPin, Phone, User, Package, Clock, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
@@ -36,6 +36,21 @@ export function OrderDetails() {
     enabled: !!id
   })
 
+  
+  const deleteOrderMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('orders').delete().eq('id', id!)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      toast.success('Order deleted successfully')
+      navigate('/orders')
+    },
+    onError: (err: any) => {
+      toast.error(err.message || 'Failed to delete order')
+    }
+  })
+  
   const updateStatusMutation = useMutation({
     mutationFn: async (newStatus: string) => {
       const { error } = await (supabase as any)
@@ -258,6 +273,7 @@ export function OrderDetails() {
             </CardContent>
           </Card>
           
+          
           {order.status !== 'CANCELLED' && order.status !== 'DELIVERED' && (
             <Button 
               variant="outline" 
@@ -268,9 +284,23 @@ export function OrderDetails() {
                 }
               }}
             >
-              <XCircle className="h-4 w-4 mr-2" /> Cancel Order
+              Cancel Order
             </Button>
           )}
+          <Button 
+            variant="outline" 
+            className="w-full text-red-600 border-red-200 hover:bg-red-50 mt-4"
+            disabled={deleteOrderMutation.isPending}
+            onClick={() => {
+              if(confirm('Are you sure you want to permanently DELETE this order? This cannot be undone.')) {
+                deleteOrderMutation.mutate()
+              }
+            }}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete Order
+          </Button>
+
         </div>
       </div>
     </div>
