@@ -5,7 +5,7 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Landmark, ArrowUpRight, ArrowDownRight, Plus, History } from 'lucide-react'
+import { Landmark, ArrowUpRight, ArrowDownRight, Plus, History, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
@@ -85,6 +85,20 @@ export function Accounts() {
   })
 
   // Handle initialization of the first account if it doesn't exist
+  
+  const deleteTxMutation = useMutation({
+    mutationFn: async (txId: string) => {
+      const { error } = await (supabase as any).rpc('reverse_transaction', { p_transaction_id: txId })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      toast.success('Transaction reversed and deleted')
+      queryClient.invalidateQueries({ queryKey: ['store_account'] })
+      queryClient.invalidateQueries({ queryKey: ['account_transactions'] })
+    },
+    onError: (err: any) => toast.error(err.message || 'Failed to reverse transaction')
+  })
+  
   const initAccountMutation = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase
@@ -204,10 +218,26 @@ export function Accounts() {
                       </div>
                     </div>
                   </div>
-                  <div className={`text-lg font-bold ${
-                    tx.type === 'DEPOSIT' || tx.type === 'INITIAL' ? 'text-green-600' : 'text-gray-900'
-                  }`}>
-                    {tx.type === 'WITHDRAWAL' ? '-' : '+'}₹{Number(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  <div className="flex items-center gap-4">
+                    <div className={`text-lg font-bold ${
+                      tx.type === 'DEPOSIT' || tx.type === 'INITIAL' ? 'text-green-600' : 'text-gray-900'
+                    }`}>
+                      {tx.type === 'WITHDRAWAL' ? '-' : '+'}₹{Number(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </div>
+                    {new Date().getTime() - new Date(tx.created_at).getTime() < 24 * 60 * 60 * 1000 && (
+                      <button
+                        onClick={() => {
+                          if (confirm('Are you sure you want to delete this transaction? This will automatically reverse the balance.')) {
+                            deleteTxMutation.mutate(tx.id)
+                          }
+                        }}
+                        disabled={deleteTxMutation.isPending}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete (available for 24h)"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
