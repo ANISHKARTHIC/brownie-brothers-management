@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useAuth } from '@/features/auth/AuthContext'
 import type { Database } from '@/types/database.types'
@@ -86,10 +86,7 @@ export function OrderForm() {
     setItems(prev => prev.filter(i => i.variantId !== variantId))
   }
 
-  const handleUpdateUnitPrice = (variantId: string, unitPrice: number) => {
-    if (unitPrice < 0) return
-    setItems(prev => prev.map(i => i.variantId === variantId ? { ...i, unitPrice } : i))
-  }
+  
 
   const handleUpdateQuantity = (variantId: string, quantity: number) => {
     if (quantity < 1) return
@@ -192,35 +189,82 @@ export function OrderForm() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto pb-12">
+    <div className="max-w-5xl mx-auto space-y-6 pb-24 md:pb-6">
       <div className="flex items-center gap-4">
         <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
           <ArrowLeft className="h-6 w-6 text-gray-600" />
         </button>
-        <h1 className="text-2xl font-bold text-gray-900">Create New Order</h1>
+        <h1 className="text-2xl font-bold text-gray-900">New Order</h1>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border p-6">
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div className="p-4 bg-red-50 text-red-700 rounded-lg text-sm border border-red-200">
+          {error}
+        </div>
+      )}
 
-        <form onSubmit={onSubmit} className="space-y-6">
-          {/* Customer Selection */}
-          <div className="space-y-4">
-            <h2 className="text-lg font-semibold border-b pb-2">Customer Info</h2>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Customer (Optional)</label>
-              <div className="space-y-2">
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Left/Top: Product Catalog (POS) */}
+        <div className="flex-1 space-y-6">
+          <div className="bg-white rounded-xl shadow-sm border p-4 md:p-6">
+            <h2 className="text-lg font-bold mb-4 border-b pb-2">Menu</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 md:gap-4">
+              {products?.map(p => (
+                <div key={p.id} className="border rounded-xl overflow-hidden flex flex-col bg-gray-50 shadow-sm">
+                  <div className="h-24 w-full bg-gray-200">
+                    {p.image_url ? (
+                      <img src={p.image_url} alt={p.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-gray-400">
+                        No Image
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-2 md:p-3 flex-1 flex flex-col">
+                    <h3 className="font-bold text-sm md:text-base text-gray-900 leading-tight mb-2">{p.name}</h3>
+                    <div className="mt-auto space-y-1.5">
+                      {p.variants.map((v: any) => (
+                        <button
+                          key={v.id}
+                          type="button"
+                          onClick={() => {
+                            const existing = items.find(i => i.variantId === v.id);
+                            if (existing) {
+                              handleUpdateQuantity(v.id, existing.quantity + 1);
+                            } else {
+                              handleAddItem(v.id);
+                            }
+                            toast.success(`Added ${p.name}`, { id: 'add-item', duration: 1000 });
+                          }}
+                          className="w-full text-left text-xs bg-white border border-gray-200 hover:border-[#8b5a2b] hover:bg-orange-50 rounded p-1.5 flex justify-between items-center transition-colors"
+                        >
+                          <span className="truncate pr-1">{v.name}</span>
+                          <span className="font-bold shrink-0">₹{v.price}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right/Bottom: Cart & Checkout */}
+        <div className="w-full md:w-[380px] shrink-0">
+          <form onSubmit={onSubmit} className="bg-white rounded-xl shadow-sm border p-4 md:p-6 sticky top-4 space-y-6">
+            <h2 className="text-lg font-bold border-b pb-2">Cart & Checkout</h2>
+            
+            {/* Customer & Order Settings */}
+            <div className="space-y-4">
+              <div>
                 <select 
                   value={customerId} 
                   onChange={e => {
                     setCustomerId(e.target.value);
                     if (e.target.value !== '') setWalkInName('');
                   }}
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5a2b]"
+                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5a2b]"
                 >
                   <option value="">Walk-in Customer</option>
                   {customers?.map(c => (
@@ -229,163 +273,95 @@ export function OrderForm() {
                 </select>
                 {customerId === '' && (
                   <Input 
-                    placeholder="Walk-in Customer Name (Optional)"
+                    placeholder="Walk-in Name (Optional)"
                     value={walkInName}
                     onChange={e => setWalkInName(e.target.value)}
+                    className="mt-2 h-9 text-sm"
                   />
                 )}
               </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Type</label>
+              
+              <div className="grid grid-cols-2 gap-2">
                 <select 
                   value={deliveryType} 
                   onChange={e => setDeliveryType(e.target.value)}
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5a2b]"
+                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5a2b]"
                 >
                   <option value="PICKUP">Pickup</option>
                   <option value="DELIVERY">Delivery</option>
                 </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
                 <select 
                   value={paymentStatus} 
                   onChange={e => setPaymentStatus(e.target.value)}
-                  className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5a2b]"
+                  className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5a2b]"
                 >
                   <option value="PENDING">Pending</option>
                   <option value="PAID">Paid</option>
                 </select>
               </div>
             </div>
-          </div>
 
-          {/* Items */}
-          <div className="space-y-4 pt-4 border-t">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Order Items</h2>
-            </div>
-            
-            <div className="flex gap-2">
-              <select 
-                id="product-selector"
-                className="flex flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#8b5a2b]"
-                defaultValue=""
-              >
-                <option value="" disabled>Select a product to add...</option>
-                {products?.map(p => (
-                  <optgroup key={p.id} label={p.name}>
-                    {p.variants.map(v => (
-                      <option key={v.id} value={v.id}>{v.name} (₹{v.price})</option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-              <Button 
-                type="button" 
-                onClick={() => {
-                  const select = document.getElementById('product-selector') as HTMLSelectElement
-                  handleAddItem(select.value)
-                  select.value = ''
-                }}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {items.length > 0 ? (
-              <div className="space-y-3 mt-4">
-                {items.map(item => (
-                  <div key={item.variantId} className="flex items-center justify-between bg-gray-50 p-3 rounded-lg border">
-                    <div className="flex-1">
-                      <p className="font-medium text-sm">{item.name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-gray-500">₹</span>
-                        <Input 
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={item.unitPrice}
-                          onChange={e => handleUpdateUnitPrice(item.variantId, parseFloat(e.target.value) || 0)}
-                          className="w-24 h-8 text-sm"
-                        />
-                        <span className="text-sm text-gray-500">each</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Input 
-                        type="number" 
-                        min="1" 
-                        value={item.quantity} 
-                        onChange={e => handleUpdateQuantity(item.variantId, parseInt(e.target.value) || 1)}
-                        className="w-16 text-center"
-                      />
-                      <p className="font-medium w-16 text-right">₹{item.quantity * item.unitPrice}</p>
-                      <button 
-                        type="button"
-                        onClick={() => handleRemoveItem(item.variantId)}
-                        className="text-red-500 hover:text-red-700 p-1"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+            {/* Cart Items */}
+            <div className="space-y-3 pt-4 border-t max-h-[30vh] overflow-y-auto pr-1">
+              {items.length > 0 ? items.map(item => (
+                <div key={item.variantId} className="flex flex-col bg-gray-50 p-2 rounded-lg border text-sm">
+                  <div className="flex justify-between font-medium text-gray-900 mb-2">
+                    <span className="truncate pr-2">{item.name}</span>
+                    <span>₹{item.quantity * item.unitPrice}</span>
                   </div>
-                ))}
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-1">
+                      <button type="button" onClick={() => handleUpdateQuantity(item.variantId, Math.max(1, item.quantity - 1))} className="w-7 h-7 bg-white border rounded flex items-center justify-center font-bold text-gray-600">-</button>
+                      <span className="w-6 text-center font-medium">{item.quantity}</span>
+                      <button type="button" onClick={() => handleUpdateQuantity(item.variantId, item.quantity + 1)} className="w-7 h-7 bg-white border rounded flex items-center justify-center font-bold text-gray-600">+</button>
+                    </div>
+                    <button 
+                      type="button"
+                      onClick={() => handleRemoveItem(item.variantId)}
+                      className="text-red-500 hover:bg-red-50 p-1.5 rounded"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )) : (
+                <div className="py-8 text-center text-gray-400 italic text-sm">
+                  Tap items on the menu to add them to the cart.
+                </div>
+              )}
+            </div>
+
+            {/* Totals */}
+            <div className="space-y-2 pt-4 border-t">
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Subtotal</span>
+                <span>₹{subtotal.toFixed(2)}</span>
               </div>
-            ) : (
-              <p className="text-sm text-gray-500 italic py-4 text-center">No items added to the order yet.</p>
-            )}
-          </div>
-
-          {/* Totals */}
-          <div className="space-y-3 pt-4 border-t">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600">Subtotal</span>
-              <span className="font-medium">₹{subtotal.toFixed(2)}</span>
-            </div>
-            
-            <div className="flex justify-between items-center text-sm gap-4">
-              <span className="text-gray-600">Discount (₹)</span>
-              <Input 
-                type="number" 
-                min="0" 
-                value={discount} 
-                onChange={e => setDiscount(parseFloat(e.target.value) || 0)}
-                className="w-24 text-right"
-              />
+              <div className="flex justify-between items-center text-sm text-gray-600">
+                <span>Discount (₹)</span>
+                <Input type="number" min="0" value={discount} onChange={e => setDiscount(parseFloat(e.target.value) || 0)} className="w-20 h-7 text-right text-sm" />
+              </div>
+              <div className="flex justify-between items-center text-sm text-gray-600">
+                <span>Delivery (₹)</span>
+                <Input type="number" min="0" value={deliveryFee} onChange={e => setDeliveryFee(parseFloat(e.target.value) || 0)} className="w-20 h-7 text-right text-sm" />
+              </div>
+              <div className="flex justify-between text-lg font-bold pt-3 border-t text-[#8b5a2b]">
+                <span>Total</span>
+                <span>₹{total.toFixed(2)}</span>
+              </div>
             </div>
 
-            <div className="flex justify-between items-center text-sm gap-4">
-              <span className="text-gray-600">Delivery Fee (₹)</span>
-              <Input 
-                type="number" 
-                min="0" 
-                value={deliveryFee} 
-                onChange={e => setDeliveryFee(parseFloat(e.target.value) || 0)}
-                className="w-24 text-right"
-              />
-            </div>
-
-            <div className="flex justify-between items-center text-lg font-bold pt-2 border-t">
-              <span>Total</span>
-              <span>₹{total.toFixed(2)}</span>
-            </div>
-          </div>
-
-          <div className="pt-6">
             <Button 
               type="submit" 
-              className="w-full bg-[#8b5a2b] hover:bg-[#6b4423]"
+              className="w-full h-12 text-lg bg-[#8b5a2b] hover:bg-[#6b4423]"
               disabled={isSubmitting || items.length === 0}
             >
-              {isSubmitting ? 'Creating Order...' : 'Create Order'}
+              {isSubmitting ? 'Processing...' : 'Place Order'}
             </Button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   )
 }
+
