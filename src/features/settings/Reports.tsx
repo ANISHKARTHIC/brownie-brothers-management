@@ -24,6 +24,23 @@ export function Reports() {
   })
 
   // Fetch today's orders for dues
+  
+  // Fetch recent paid orders
+  const { data: recentPaidOrders, isLoading: isLoadingRecent } = useQuery({
+    queryKey: ['reports_recent_paid_orders'],
+    queryFn: async () => {
+      const todayStart = startOfDay(new Date()).toISOString()
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*, customers(name)')
+        .eq('payment_status', 'PAID')
+        .gte('created_at', todayStart)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return (data as any[]) || []
+    }
+  })
+
   const { data: todayOrders, isLoading: isLoadingOrders } = useQuery({
     queryKey: ['reports_orders_today'],
     queryFn: async () => {
@@ -183,6 +200,39 @@ export function Reports() {
               </div>
             )}
           </div>
+        </CardContent>
+      </Card>
+    
+      <Card className="shadow-sm border-gray-100">
+        <CardHeader className="border-b border-gray-50 pb-4">
+          <CardTitle className="text-lg font-bold flex items-center gap-2">
+            <IndianRupee className="w-5 h-5 text-[#8b5a2b]" />
+            Today's Paid Orders Breakdown
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          {isLoadingRecent ? (
+            <div className="p-8 text-center text-gray-500">Loading orders...</div>
+          ) : !recentPaidOrders || recentPaidOrders.length === 0 ? (
+            <div className="p-12 text-center text-gray-500">
+              No paid orders found for today.
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {recentPaidOrders.map(order => (
+                <div key={order.id} className="p-4 flex items-center justify-between hover:bg-gray-50/50">
+                  <div>
+                    <p className="font-semibold text-gray-900">Order #{order.order_number}</p>
+                    <p className="text-sm text-gray-500">{order.customers?.name || 'Walk-in'} • {format(new Date(order.created_at), 'h:mm a')}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-green-600">+₹{order.total.toLocaleString()}</p>
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">PAID</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
