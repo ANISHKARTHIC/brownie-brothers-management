@@ -18,13 +18,13 @@ export function MoreMenu() {
   const { profile, signOut } = useAuth()
 
   const menuItems = [
-    { name: 'Production', path: '/production', icon: Factory, roles: ['OWNER', 'MANAGER', 'PRODUCTION'] },
-    { name: 'Payments', path: '/payments', icon: CreditCard, roles: ['OWNER', 'MANAGER'] },
-    { name: 'Deliveries', path: '/deliveries', icon: Truck, roles: ['OWNER', 'MANAGER', 'DELIVERY'] },
-    { name: 'Expenses', path: '/expenses', icon: Receipt, roles: ['OWNER', 'MANAGER'] },
-    { name: 'Reports', path: '/reports', icon: BarChart3, roles: ['OWNER', 'MANAGER'] },
-    { name: 'Staff', path: '/staff', icon: UsersRound, roles: ['OWNER'] },
-    { name: 'Settings', path: '/settings', icon: Settings, roles: ['OWNER', 'MANAGER'] },
+    { name: 'Production', path: '/production', icon: Factory, roles: ['OWNER', 'MANAGER', 'STAFF', 'PRODUCTION'] },
+    { name: 'Payments', path: '/payments', icon: CreditCard, roles: ['OWNER', 'MANAGER', 'STAFF'] },
+    { name: 'Deliveries', path: '/deliveries', icon: Truck, roles: ['OWNER', 'MANAGER', 'STAFF', 'DELIVERY'] },
+    { name: 'Expenses', path: '/expenses', icon: Receipt, roles: ['OWNER', 'MANAGER', 'STAFF'] },
+    { name: 'Reports', path: '/reports', icon: BarChart3, roles: ['OWNER', 'MANAGER', 'STAFF'] },
+    { name: 'Staff', path: '/staff', icon: UsersRound, roles: ['OWNER', 'MANAGER', 'STAFF'] },
+    { name: 'Settings', path: '/settings', icon: Settings, roles: ['OWNER', 'MANAGER', 'STAFF'] },
   ]
 
   // Filter items based on user role
