@@ -1,16 +1,32 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
-import { Search, Plus, Clock, CheckCircle2, PackageOpen } from 'lucide-react'
+import { Search, Plus, Clock, CheckCircle2, PackageOpen, Trash2, ChevronRight, XCircle, ChefHat } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDebounce } from '@/hooks/useDebounce'
 import { format } from 'date-fns'
+import toast from 'react-hot-toast'
 
 export function OrderList() {
   const navigate = useNavigate()
+  
+  const queryClient = useQueryClient()
+  
+  const deleteOrderMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('orders').delete().eq('id', id)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      toast.success('Order deleted')
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+    onError: (err: any) => toast.error(err.message || 'Failed to delete')
+  })
+
   const [searchTerm, setSearchTerm] = useState('')
   const debouncedSearch = useDebounce(searchTerm, 300)
 
@@ -123,68 +139,147 @@ export function OrderList() {
             <p className="text-gray-500 max-w-sm mx-auto">Create a new order to get started processing sales.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-500">
-              <thead className="text-xs text-gray-700 uppercase bg-gray-50/50 border-b border-gray-100">
-                <tr>
-                  <th scope="col" className="px-6 py-4 font-semibold">Order</th>
-                  <th scope="col" className="px-6 py-4 font-semibold">Date</th>
-                  <th scope="col" className="px-6 py-4 font-semibold">Status</th>
-                  <th scope="col" className="px-6 py-4 font-semibold">Payment</th>
-                  <th scope="col" className="px-6 py-4 font-semibold text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {orders?.map((order) => (
-                  <tr 
-                    key={order.id} 
-                    className="bg-white hover:bg-gray-50/50 transition-colors cursor-pointer group"
-                    onClick={() => navigate(`/orders/${order.id}`)}
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 bg-[#f4e8d8] text-[#8b5a2b] rounded-xl flex items-center justify-center font-bold text-sm group-hover:scale-105 transition-transform">
-                          #{order.order_number.toString().slice(-3)}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-gray-900">{(order.customers as any)?.name || 'Walk-in'} <span className="text-xs text-gray-400 font-normal ml-2">Added by {(order.profiles as any)?.full_name || 'Staff'}</span></div>
-                          <div className="text-xs text-gray-400 mt-0.5">{order.delivery_type}</div>
-                        </div>
+          
+          <div className="flex flex-col">
+            {/* Mobile Cards (Visible only on small screens) */}
+            <div className="block md:hidden space-y-3">
+              {orders?.map(order => (
+                <div 
+                  key={order.id} 
+                  onClick={() => navigate(`/orders/${order.id}`)}
+                  className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm active:bg-gray-50 transition-colors"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-10 w-10 bg-[#f4e8d8] text-[#8b5a2b] rounded-xl flex items-center justify-center font-bold text-sm">
+                        #{order.order_number.toString().slice(-3)}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                      {format(new Date(order.created_at), 'MMM d, h:mm a')}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
-                        order.status === 'READY' || order.status === 'COMPLETED' ? 'bg-green-50 text-green-700 ring-green-600/20' :
-                        order.status === 'DELIVERED' ? 'bg-blue-50 text-blue-700 ring-blue-600/20' :
-                        order.status === 'CANCELLED' ? 'bg-red-50 text-red-700 ring-red-600/20' :
-                        'bg-orange-50 text-orange-700 ring-orange-600/20'
+                      <div>
+                        <p className="font-semibold text-gray-900">{order.customers?.name || 'Walk-in Customer'}</p>
+                        <p className="text-xs text-gray-500">{format(new Date(order.created_at), 'MMM d, h:mm a')}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-[#8b5a2b]">₹{order.total.toLocaleString()}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-3 border-t border-gray-50">
+                    <div className="flex gap-2">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] font-medium ${
+                        order.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                        order.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+                        'bg-blue-100 text-blue-700'
                       }`}>
-                        {order.status === 'PENDING' && <span className="h-1.5 w-1.5 rounded-full bg-orange-500 animate-pulse"></span>}
-                        {order.status === 'DELIVERED' && <CheckCircle2 className="w-3.5 h-3.5" />}
                         {order.status}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
-                        order.payment_status === 'PAID' ? 'bg-green-50 text-green-700 ring-green-600/20' : 'bg-red-50 text-red-700 ring-red-600/20'
+                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] font-medium ${
+                        order.payment_status === 'PAID' ? 'bg-emerald-100 text-emerald-700' :
+                        order.payment_status === 'PARTIAL' ? 'bg-orange-100 text-orange-700' :
+                        'bg-gray-100 text-gray-700'
                       }`}>
                         {order.payment_status}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="text-base font-bold text-gray-900">
-                        <span className="text-gray-400 mr-1 text-sm font-normal">₹</span>
-                        {order.total}
-                      </div>
-                    </td>
+                    </div>
+                    
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if(confirm('Delete this order permanently?')) {
+                          deleteOrderMutation.mutate(order.id)
+                        }
+                      }}
+                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table (Hidden on small screens) */}
+            <div className="hidden md:block overflow-x-auto rounded-xl border border-gray-100">
+              <table className="w-full text-left text-sm text-gray-500">
+                <thead className="text-xs text-gray-700 uppercase bg-gray-50/50 border-b border-gray-100">
+                  <tr>
+                    <th scope="col" className="px-6 py-4 font-semibold">Order</th>
+                    <th scope="col" className="px-6 py-4 font-semibold">Date</th>
+                    <th scope="col" className="px-6 py-4 font-semibold">Status</th>
+                    <th scope="col" className="px-6 py-4 font-semibold">Payment</th>
+                    <th scope="col" className="px-6 py-4 font-semibold text-right">Total</th>
+                    <th scope="col" className="px-6 py-4 font-semibold text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-50 bg-white">
+                  {orders?.map((order) => (
+                    <tr 
+                      key={order.id} 
+                      className="hover:bg-gray-50/50 transition-colors cursor-pointer group"
+                      onClick={() => navigate(`/orders/${order.id}`)}
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 bg-[#f4e8d8] text-[#8b5a2b] rounded-xl flex items-center justify-center font-bold text-sm group-hover:scale-105 transition-transform">
+                            #{order.order_number.toString().slice(-3)}
+                          </div>
+                          <div>
+                            <div className="font-semibold text-gray-900">{order.customers?.name || 'Walk-in Customer'}</div>
+                            <div className="text-xs text-gray-500">{order.profiles?.full_name ? `by ${order.profiles.full_name}` : ''}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {format(new Date(order.created_at), 'MMM d, yyyy h:mm a')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                          order.status === 'COMPLETED' || order.status === 'DELIVERED' ? 'bg-green-100 text-green-700' :
+                          order.status === 'CANCELLED' ? 'bg-red-100 text-red-700' :
+                          'bg-blue-100 text-blue-700'
+                        }`}>
+                          {order.status === 'COMPLETED' ? <CheckCircle2 className="w-3 h-3 mr-1" /> : 
+                           order.status === 'PREPARING' ? <ChefHat className="w-3 h-3 mr-1" /> :
+                           order.status === 'CANCELLED' ? <XCircle className="w-3 h-3 mr-1" /> :
+                           <Clock className="w-3 h-3 mr-1" />}
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                          order.payment_status === 'PAID' ? 'bg-green-100 text-green-700' :
+                          order.payment_status === 'PARTIAL' ? 'bg-orange-100 text-orange-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {order.payment_status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right font-bold text-[#8b5a2b]">
+                        ₹{order.total.toLocaleString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end gap-2">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if(confirm('Delete this order permanently?')) {
+                                deleteOrderMutation.mutate(order.id)
+                              }
+                            }}
+                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                          <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-[#8b5a2b] transition-colors" />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
+
         )}
       </div>
     </div>

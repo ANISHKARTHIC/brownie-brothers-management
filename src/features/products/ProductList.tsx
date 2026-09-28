@@ -78,48 +78,47 @@ export function ProductList() {
           <p className="text-gray-500">No products found.</p>
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {products?.map((product) => (
             <Card 
               key={product.id} 
               className={`hover:shadow-md transition-shadow cursor-pointer overflow-hidden ${!product.is_active ? 'opacity-60' : ''}`}
               onClick={() => navigate(`/products/${product.id}`)}
             >
-              <div className="flex h-32 w-full items-center justify-center bg-gray-100">
-                {product.image_url ? (
-                  <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
-                ) : (
-                  <ImageIcon className="h-10 w-10 text-gray-300" />
-                )}
-              </div>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{product.name}</h3>
-                    <p className="text-sm text-gray-500 line-clamp-2 mt-1">{product.description}</p>
-                  </div>
-                  {!product.is_active && (
-                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600">
-                      Inactive
-                    </span>
+              <div className="flex p-4 gap-4">
+                <div className="h-20 w-20 sm:h-24 sm:w-24 shrink-0 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 overflow-hidden">
+                  {product.image_url ? (
+                    <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <ImageIcon className="h-8 w-8 text-gray-300" />
                   )}
                 </div>
-                
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Variants</p>
-                  <div className="space-y-2">
-                    {product.variants?.map(variant => (
-                      <div key={variant.id} className="flex justify-between items-center text-sm">
-                        <span className="text-gray-700">{variant.name}</span>
-                        <span className="font-medium">₹{variant.price}</span>
+                <div className="flex-1 min-w-0 py-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-bold text-gray-900 truncate text-base sm:text-lg">{product.name}</h3>
+                    {!product.is_active && (
+                      <span className="shrink-0 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600 uppercase tracking-wider">
+                        Inactive
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500 line-clamp-1 mt-0.5">{product.description || 'No description'}</p>
+                  
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {product.variants?.slice(0, 3).map((v: any) => (
+                      <div key={v.id} className="bg-orange-50 text-[#8b5a2b] border border-orange-100 px-2 py-1 rounded-md text-xs font-medium flex gap-2">
+                        <span>{v.name}</span>
+                        <span className="font-bold">₹{v.price}</span>
                       </div>
                     ))}
-                    {(!product.variants || product.variants.length === 0) && (
-                      <p className="text-sm text-gray-400 italic">No variants</p>
+                    {product.variants && product.variants.length > 3 && (
+                      <div className="bg-gray-50 text-gray-500 border border-gray-200 px-2 py-1 rounded-md text-xs font-medium">
+                        +{product.variants.length - 3} more
+                      </div>
                     )}
                   </div>
                 </div>
-              </CardContent>
+              </div>
             </Card>
           ))}
         </div>
