@@ -75,45 +75,45 @@ export function OrderList() {
       </header>
 
       {/* Stats row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6">
         <Card className="border-none shadow-sm bg-gradient-to-br from-white to-gray-50">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-blue-100 text-blue-600 rounded-2xl">
-              <PackageOpen className="w-6 h-6" />
+          <CardContent className="p-2 sm:p-6 flex flex-col md:flex-row items-center gap-1 sm:gap-4 text-center md:text-left">
+            <div className="p-2 sm:p-3 bg-blue-100 text-blue-600 rounded-xl">
+              <PackageOpen className="w-5 h-5 md:w-6 md:h-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Total Orders</p>
-              <p className="text-2xl font-bold text-gray-900">{isLoading ? '-' : orders?.length || 0}</p>
+              <p className="text-[10px] md:text-sm font-medium text-gray-500">Total</p>
+              <p className="text-base sm:text-2xl font-bold text-gray-900 leading-none mt-0.5">{isLoading ? '-' : orders?.length || 0}</p>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-sm bg-gradient-to-br from-white to-orange-50/50">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-orange-100 text-orange-600 rounded-2xl">
-              <Clock className="w-6 h-6" />
+          <CardContent className="p-2 sm:p-6 flex flex-col md:flex-row items-center gap-1 sm:gap-4 text-center md:text-left">
+            <div className="p-2 sm:p-3 bg-orange-100 text-orange-600 rounded-xl">
+              <Clock className="w-5 h-5 md:w-6 md:h-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Active / Pending</p>
-              <p className="text-2xl font-bold text-gray-900">{isLoading ? '-' : pendingCount}</p>
+              <p className="text-[10px] md:text-sm font-medium text-gray-500">Pending</p>
+              <p className="text-base sm:text-2xl font-bold text-gray-900 leading-none mt-0.5">{isLoading ? '-' : pendingCount}</p>
             </div>
           </CardContent>
         </Card>
 
         <Card className="border-none shadow-sm bg-gradient-to-br from-white to-green-50/50">
-          <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-green-100 text-green-600 rounded-2xl">
-              <CheckCircle2 className="w-6 h-6" />
+          <CardContent className="p-2 sm:p-6 flex flex-col md:flex-row items-center gap-1 sm:gap-4 text-center md:text-left">
+            <div className="p-2 sm:p-3 bg-green-100 text-green-600 rounded-xl">
+              <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-500">Completed Today</p>
-              <p className="text-2xl font-bold text-gray-900">{isLoading ? '-' : completedToday}</p>
+              <p className="text-[10px] md:text-sm font-medium text-gray-500">Delivered</p>
+              <p className="text-base sm:text-2xl font-bold text-gray-900 leading-none mt-0.5">{isLoading ? '-' : completedToday}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white/ rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-4 border-b border-gray-100 bg-gray-50/50">
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
