@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom'
-import { Home, ClipboardList, Users, Menu, Cookie, ChefHat } from 'lucide-react'
+import { Home, ClipboardList, Menu, Cookie, ChefHat, Landmark } from 'lucide-react'
 
 export function AppLayout() {
   const navItems = [
@@ -7,7 +7,7 @@ export function AppLayout() {
     { name: 'Orders', path: '/orders', icon: ClipboardList },
     { name: 'Products', path: '/products', icon: Cookie },
     { name: 'Prep', path: '/production', icon: ChefHat },
-    { name: 'Customers', path: '/customers', icon: Users },
+    { name: 'Accounts', path: '/accounts', icon: Landmark },
     { name: 'More', path: '/more', icon: Menu },
   ]
 

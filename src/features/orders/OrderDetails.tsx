@@ -76,8 +76,8 @@ export function OrderDetails() {
          await (supabase as any).from('payments').insert([{
            order_id: id!,
            amount: order?.total || 0,
-           payment_method: 'CASH',
-           status: 'COMPLETED'
+           method: 'CASH',
+           status: 'PAID'
          }]);
       }
     },

@@ -171,8 +171,8 @@ export function OrderForm() {
             {
               order_id: orderData.id,
               amount: total,
-              payment_method: 'CASH', // Default for now
-              status: 'COMPLETED' // Assume completed if marked PAID
+              method: 'CASH', // Default for now
+              status: 'PAID' // Assume completed if marked PAID
             }
           ] as any)
           
