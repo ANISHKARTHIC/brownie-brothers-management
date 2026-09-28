@@ -19,6 +19,7 @@ import { ComingSoon } from '@/components/layout/ComingSoon'
 import { PreparationBoard } from '@/features/production/PreparationBoard'
 import { Settings } from '@/features/settings/Settings'
 import { Reports } from '@/features/settings/Reports'
+import { Accounts } from '@/features/accounts/Accounts'
 
 import { CustomerForm } from '@/features/customers/CustomerForm'
 import { CustomerDetails } from '@/features/customers/CustomerDetails'
@@ -85,6 +86,7 @@ export default function App() {
               <Route path="expenses" element={<ComingSoon title="Expenses" />} />
               <Route path="reports" element={<Reports />} />
               <Route path="staff" element={<ComingSoon title="Staff Management" />} />
+              <Route path="accounts" element={<Accounts />} />
               <Route path="settings" element={<Settings />} />
 
             </Route>

@@ -9,6 +9,57 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      store_accounts: {
+        Row: {
+          id: string
+          name: string
+          balance: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          balance?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          balance?: number
+          updated_at?: string
+        }
+      }
+      account_transactions: {
+        Row: {
+          id: string
+          account_id: string
+          type: 'INITIAL' | 'DEPOSIT' | 'WITHDRAWAL'
+          amount: number
+          remarks: string
+          performed_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          account_id: string
+          type: 'INITIAL' | 'DEPOSIT' | 'WITHDRAWAL'
+          amount: number
+          remarks: string
+          performed_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          account_id?: string
+          type?: 'INITIAL' | 'DEPOSIT' | 'WITHDRAWAL'
+          amount?: number
+          remarks?: string
+          performed_by?: string | null
+        }
+      }
+
       profiles: {
         Row: {
           id: string
