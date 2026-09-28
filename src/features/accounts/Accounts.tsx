@@ -10,7 +10,7 @@ import { format } from 'date-fns'
 import toast from 'react-hot-toast'
 
 export function Accounts() {
-  const { session } = useAuth()
+  const { profile } = useAuth()
   const queryClient = useQueryClient()
   
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -65,7 +65,7 @@ export function Accounts() {
         p_type: modalType,
         p_amount: Number(amount),
         p_remarks: remarks,
-        p_user_id: session?.user?.id
+        p_user_id: profile?.id || null
       })
 
       if (error) throw error
