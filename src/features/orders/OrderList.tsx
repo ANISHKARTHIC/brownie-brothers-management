@@ -204,6 +204,7 @@ export function OrderList() {
                 <thead className="text-xs text-gray-700 uppercase bg-gray-50/50 border-b border-gray-100">
                   <tr>
                     <th scope="col" className="px-6 py-4 font-semibold">Order</th>
+                    <th scope="col" className="px-6 py-4 font-semibold">Customer</th>
                     <th scope="col" className="px-6 py-4 font-semibold">Date</th>
                     <th scope="col" className="px-6 py-4 font-semibold">Status</th>
                     <th scope="col" className="px-6 py-4 font-semibold">Payment</th>
@@ -223,11 +224,11 @@ export function OrderList() {
                           <div className="h-10 w-10 bg-[#f4e8d8] text-[#8b5a2b] rounded-xl flex items-center justify-center font-bold text-sm group-hover:scale-105 transition-transform">
                             #{order.order_number.toString().slice(-3)}
                           </div>
-                          <div>
-                            <div className="font-semibold text-gray-900">{order.customers?.name || 'Walk-in Customer'}</div>
-                            <div className="text-xs text-gray-500">{order.profiles?.full_name ? `by ${order.profiles.full_name}` : ''}</div>
-                          </div>
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="font-semibold text-gray-900">{order.customers?.name || 'Walk-in Customer'}</div>
+                        <div className="text-xs text-gray-500">{order.profiles?.full_name ? `Taken by ${order.profiles.full_name}` : ''}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {format(new Date(order.created_at), 'MMM d, yyyy h:mm a')}
