@@ -177,7 +177,7 @@ export function Accounts() {
             <div className="text-5xl font-bold">
               ₹{Number(account.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
-            {outstandingBalance > 0 && (
+            {true && (
               <div className="mt-4 pt-4 border-t border-white/20">
                 <div className="flex justify-between items-center text-orange-100 text-sm mb-1">
                   <span>Outstanding (To Receive)</span>
