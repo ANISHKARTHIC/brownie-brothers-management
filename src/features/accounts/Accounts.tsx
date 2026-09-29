@@ -35,6 +35,20 @@ export function Accounts() {
   })
 
   // 2. Fetch ledger history
+  
+  const { data: outstandingBalance = 0 } = useQuery({
+    queryKey: ['outstanding_balance'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('total')
+        .eq('payment_status', 'PENDING')
+      
+      if (error) throw error
+      return data.reduce((sum, order: any) => sum + Number(order.total || 0), 0)
+    }
+  })
+
   const { data: transactions, isLoading: isLoadingTx } = useQuery({
     queryKey: ['account_transactions', account?.id],
     enabled: !!account?.id,
@@ -163,6 +177,18 @@ export function Accounts() {
             <div className="text-5xl font-bold">
               ₹{Number(account.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
+            {outstandingBalance > 0 && (
+              <div className="mt-4 pt-4 border-t border-white/20">
+                <div className="flex justify-between items-center text-orange-100 text-sm mb-1">
+                  <span>Outstanding (To Receive)</span>
+                  <span className="font-medium">+ ₹{outstandingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between items-center text-white font-bold">
+                  <span>Total Expected Assets</span>
+                  <span>₹{(Number(account.balance) + outstandingBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex gap-4 w-full md:w-auto">
             <Button 
