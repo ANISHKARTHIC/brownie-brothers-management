@@ -27,6 +27,8 @@ import { CustomerDetails } from '@/features/customers/CustomerDetails'
 import { ProductForm } from '@/features/products/ProductForm'
 import { ProductDetails } from '@/features/products/ProductDetails'
 
+import { ErrorBoundary } from '@/components/layout/ErrorBoundary'
+
 const queryClient = new QueryClient()
 
 // Protected route wrapper
@@ -70,7 +72,9 @@ export default function App() {
             
             <Route path="/" element={
               <ProtectedRoute>
-                <AppLayout />
+                <ErrorBoundary>
+                  <AppLayout />
+                </ErrorBoundary>
               </ProtectedRoute>
             }>
               <Route index element={<Dashboard />} />

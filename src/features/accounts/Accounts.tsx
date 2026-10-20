@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/features/auth/AuthContext'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { useNavigate } from 'react-router-dom'
 import {
   Landmark,
   ArrowUpRight,
@@ -17,6 +18,8 @@ import {
   CreditCard,
   X,
   TrendingUp,
+  Users,
+  ChevronRight,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -25,7 +28,7 @@ type Account = {
   id: string
   name: string
   balance: number
-  account_type: string
+  account_type?: string | null
   created_at: string
 }
 
@@ -56,39 +59,44 @@ function AccountCard({
   onDeposit: (acc: Account) => void
   onWithdraw: (acc: Account) => void
 }) {
-  const meta = ACCOUNT_TYPE_META[account.account_type] || ACCOUNT_TYPE_META.OTHER
+  const accType = (account.account_type || 'CASH').toUpperCase()
+  const meta = ACCOUNT_TYPE_META[accType] || ACCOUNT_TYPE_META.CASH
   const Icon = meta.icon
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col gap-4 hover:shadow-md transition-shadow duration-200">
+    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between gap-4 hover:shadow-md transition-all duration-200">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className={`p-2.5 rounded-xl ${meta.bg}`}>
+          <div className={`p-2.5 rounded-2xl ${meta.bg}`}>
             <Icon className={`h-5 w-5 ${meta.color}`} />
           </div>
           <div>
             <p className="font-bold text-gray-900 text-sm leading-tight">{account.name}</p>
-            <p className="text-xs text-gray-400 font-medium capitalize mt-0.5">{account.account_type.toLowerCase()}</p>
+            <p className="text-xs text-gray-400 font-medium capitalize mt-0.5">
+              {accType.toLowerCase()}
+            </p>
           </div>
         </div>
       </div>
+
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">Balance</p>
-        <p className="text-3xl font-bold text-gray-900 tabular-nums">
-          ₹{Number(account.balance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+        <p className="text-3xl font-extrabold text-gray-900 tabular-nums">
+          ₹{Number(account.balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
         </p>
       </div>
-      <div className="flex gap-2">
+
+      <div className="flex gap-2 pt-2 border-t border-gray-50">
         <button
           onClick={() => onWithdraw(account)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-red-50 text-red-600 text-sm font-semibold hover:bg-red-100 transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors"
         >
           <ArrowDownRight className="h-4 w-4" />
           Withdraw
         </button>
         <button
           onClick={() => onDeposit(account)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-green-50 text-green-600 text-sm font-semibold hover:bg-green-100 transition-colors"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 transition-colors"
         >
           <ArrowUpRight className="h-4 w-4" />
           Deposit
@@ -101,6 +109,7 @@ function AccountCard({
 export function Accounts() {
   const { profile } = useAuth()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
   const [activeTab, setActiveTab] = useState<'overview' | 'ledger'>('overview')
 
@@ -122,7 +131,7 @@ export function Accounts() {
   // Ledger filter
   const [ledgerFilter, setLedgerFilter] = useState<string>('ALL')
 
-  // Fetch all accounts
+  // 1. Fetch all store accounts
   const { data: accounts = [], isLoading: isLoadingAccounts } = useQuery<Account[]>({
     queryKey: ['store_accounts'],
     queryFn: async () => {
@@ -130,28 +139,36 @@ export function Accounts() {
         .from('store_accounts')
         .select('*')
         .order('created_at', { ascending: true })
-      if (error) throw error
+      if (error) {
+        console.error('Error loading store accounts:', error)
+        return []
+      }
       return data || []
     },
   })
 
-  // Grand total
-  const grandTotal = accounts.reduce((sum, a) => sum + Number(a.balance), 0)
+  // Grand total across all cash/bank accounts
+  const grandTotal = accounts.reduce((sum, a) => sum + Number(a.balance || 0), 0)
 
-  // Outstanding balance from orders
-  const { data: outstandingBalance = 0 } = useQuery<number>({
-    queryKey: ['outstanding_balance'],
+  // 2. Fetch customer outstanding directly from customer_outstanding table
+  const { data: customerOutstanding = 0 } = useQuery<number>({
+    queryKey: ['accounts_customer_outstanding'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('orders')
-        .select('total')
-        .eq('payment_status', 'PENDING')
-      if (error) throw error
-      return (data || []).reduce((sum: number, o: any) => sum + Number(o.total || 0), 0)
+      const { data, error } = await (supabase as any)
+        .from('customer_outstanding')
+        .select('amount')
+        .eq('is_settled', false)
+
+      if (error) {
+        console.error('Error fetching customer outstanding for accounts:', error)
+        return 0
+      }
+
+      return (data || []).reduce((sum: number, row: any) => sum + Number(row.amount || 0), 0)
     },
   })
 
-  // Fetch all transactions
+  // 3. Fetch all account ledger transactions
   const { data: transactions = [], isLoading: isLoadingTx } = useQuery<Transaction[]>({
     queryKey: ['account_transactions'],
     queryFn: async () => {
@@ -159,7 +176,10 @@ export function Accounts() {
         .from('account_transactions')
         .select(`*, profiles ( full_name ), store_accounts ( name )`)
         .order('created_at', { ascending: false })
-      if (error) throw error
+      if (error) {
+        console.error('Error loading account transactions:', error)
+        return []
+      }
       return data || []
     },
   })
@@ -238,23 +258,23 @@ export function Accounts() {
 
   if (isLoadingAccounts) {
     return (
-      <div className="flex h-[80vh] items-center justify-center">
+      <div className="flex h-[70vh] items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8b5a2b] border-t-transparent" />
       </div>
     )
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Accounts</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manage your cash flow & balances</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900">Accounts & Cash</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Manage split cash, bank balances, and customer dues</p>
         </div>
         <Button
           onClick={() => setAddModal(true)}
-          className="bg-[#8b5a2b] hover:bg-[#6b4423] text-white rounded-2xl shadow-sm"
+          className="bg-[#8b5a2b] hover:bg-[#6b4423] text-white rounded-2xl shadow-sm text-xs md:text-sm"
         >
           <Plus className="h-4 w-4 mr-1.5" />
           Add Account
@@ -265,8 +285,10 @@ export function Accounts() {
       <div className="bg-gradient-to-br from-[#8b5a2b] to-[#6b4423] rounded-3xl p-6 text-white shadow-lg">
         <div className="flex items-start justify-between mb-6">
           <div>
-            <p className="text-orange-200/80 text-xs font-semibold uppercase tracking-widest mb-1">Total Balance</p>
-            <p className="text-4xl font-bold tabular-nums">
+            <p className="text-orange-200/80 text-xs font-semibold uppercase tracking-widest mb-1">
+              Total Balance in Accounts
+            </p>
+            <p className="text-3xl md:text-4xl font-extrabold tabular-nums">
               ₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </p>
           </div>
@@ -274,21 +296,33 @@ export function Accounts() {
             <Landmark className="h-6 w-6 text-orange-200" />
           </div>
         </div>
-        <div className="flex items-center justify-between pt-4 border-t border-white/20">
-          <div>
-            <p className="text-orange-200/70 text-xs font-medium">Orders Outstanding</p>
-            <p className="text-white font-bold tabular-nums">
-              + ₹{outstandingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-            </p>
+
+        {/* Added Customer Outstanding row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/20">
+          <div
+            onClick={() => navigate('/customers')}
+            className="cursor-pointer bg-white/10 hover:bg-white/15 p-3.5 rounded-2xl transition-colors flex items-center justify-between"
+          >
+            <div>
+              <p className="text-orange-200 text-xs font-medium flex items-center gap-1.5">
+                <Users className="h-3.5 w-3.5" /> Added Customer Outstanding
+              </p>
+              <p className="text-white font-bold text-lg tabular-nums mt-0.5">
+                + ₹{customerOutstanding.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+            <ChevronRight className="h-4 w-4 text-orange-200/70" />
           </div>
-          <div className="text-right">
-            <p className="text-orange-200/70 text-xs font-medium">Total Expected</p>
-            <p className="text-white font-bold tabular-nums">
-              ₹{(grandTotal + outstandingBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-            </p>
-          </div>
-          <div className="p-2 bg-white/10 rounded-xl">
-            <TrendingUp className="h-4 w-4 text-orange-200" />
+
+          <div className="bg-white/10 p-3.5 rounded-2xl flex items-center justify-between">
+            <div>
+              <p className="text-orange-200 text-xs font-medium flex items-center gap-1.5">
+                <TrendingUp className="h-3.5 w-3.5" /> Total Expected Assets
+              </p>
+              <p className="text-white font-extrabold text-lg tabular-nums mt-0.5">
+                ₹{(grandTotal + customerOutstanding).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -299,29 +333,31 @@ export function Accounts() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-5 py-2 rounded-xl text-sm font-semibold capitalize transition-all duration-200 ${
+            className={`px-5 py-2 rounded-xl text-xs font-bold capitalize transition-all duration-200 ${
               activeTab === tab
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            {tab === 'overview' ? 'Overview' : 'Ledger'}
+            {tab === 'overview' ? 'Split Accounts' : 'Ledger History'}
           </button>
         ))}
       </div>
 
-      {/* Tab Content */}
+      {/* Tab: Overview (Split Accounts) */}
       {activeTab === 'overview' && (
         <>
           {accounts.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="p-5 bg-[#f4e8d8] rounded-3xl w-fit mx-auto mb-4">
+            <div className="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+              <div className="p-4 bg-[#f4e8d8] rounded-3xl w-fit mx-auto mb-4">
                 <Landmark className="h-10 w-10 text-[#8b5a2b]" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-1">No accounts yet</h3>
-              <p className="text-gray-500 text-sm mb-6">Add your first account to start tracking cash flow.</p>
-              <Button onClick={() => setAddModal(true)} className="bg-[#8b5a2b] text-white rounded-2xl">
-                <Plus className="h-4 w-4 mr-1.5" /> Add Account
+              <h3 className="text-lg font-bold text-gray-900 mb-1">No Accounts Yet</h3>
+              <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+                Add your split accounts (such as Main Register Cash, Petty Cash, Bank Account, or UPI) to track them separately.
+              </p>
+              <Button onClick={() => setAddModal(true)} className="bg-[#8b5a2b] hover:bg-[#6b4423] text-white rounded-2xl">
+                <Plus className="h-4 w-4 mr-1.5" /> Add First Account
               </Button>
             </div>
           ) : (
@@ -339,14 +375,15 @@ export function Accounts() {
         </>
       )}
 
+      {/* Tab: Ledger */}
       {activeTab === 'ledger' && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
           {/* Ledger filter */}
-          <div className="p-4 border-b border-gray-50 flex items-center gap-3 overflow-x-auto">
+          <div className="p-4 border-b border-gray-50 flex items-center gap-2 overflow-x-auto">
             <History className="h-4 w-4 text-gray-400 flex-shrink-0" />
             <button
               onClick={() => setLedgerFilter('ALL')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex-shrink-0 transition-colors ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0 transition-colors ${
                 ledgerFilter === 'ALL'
                   ? 'bg-[#f4e8d8] text-[#8b5a2b]'
                   : 'text-gray-500 hover:bg-gray-100'
@@ -358,7 +395,7 @@ export function Accounts() {
               <button
                 key={acc.id}
                 onClick={() => setLedgerFilter(acc.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex-shrink-0 transition-colors ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold flex-shrink-0 transition-colors ${
                   ledgerFilter === acc.id
                     ? 'bg-[#f4e8d8] text-[#8b5a2b]'
                     : 'text-gray-500 hover:bg-gray-100'
@@ -376,7 +413,8 @@ export function Accounts() {
           ) : filteredTx.length === 0 ? (
             <div className="p-12 text-center text-gray-400">
               <History className="h-8 w-8 mx-auto mb-2 opacity-30" />
-              <p className="font-medium">No transactions yet</p>
+              <p className="font-semibold text-sm text-gray-600">No transactions recorded yet</p>
+              <p className="text-xs text-gray-400 mt-1">Deposits and withdrawals will appear here.</p>
             </div>
           ) : (
             <div className="divide-y divide-gray-50">
@@ -408,15 +446,17 @@ export function Accounts() {
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0 ml-4">
                       <span className={`text-base font-bold tabular-nums ${isIncome ? 'text-green-600' : 'text-red-500'}`}>
-                        {isIncome ? '+' : '-'}₹{Number(tx.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        {isIncome ? '+' : '-'}₹{Number(tx.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </span>
                       {within24h && (
                         <button
                           onClick={() => {
-                            if (confirm('Reverse this transaction?')) deleteTxMutation.mutate(tx.id)
+                            if (confirm('Reverse this transaction? This will restore the account balance.')) {
+                              deleteTxMutation.mutate(tx.id)
+                            }
                           }}
                           className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Reverse (available 24h)"
+                          title="Reverse (available within 24h)"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -430,13 +470,13 @@ export function Accounts() {
         </div>
       )}
 
-      {/* Transaction Modal */}
+      {/* Transaction Modal (Deposit / Withdraw) */}
       {txModal.open && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-xl font-bold text-gray-900">
-                {txModal.type === 'DEPOSIT' ? 'Add Deposit' : 'Withdraw Funds'}
+                {txModal.type === 'DEPOSIT' ? 'Deposit Funds' : 'Withdraw Funds'}
               </h2>
               <button
                 onClick={() => setTxModal({ open: false, type: 'DEPOSIT', account: null })}
@@ -445,8 +485,8 @@ export function Accounts() {
                 <X className="h-4 w-4 text-gray-500" />
               </button>
             </div>
-            <p className="text-sm text-gray-400 mb-6">
-              Account: <span className="font-semibold text-gray-600">{txModal.account?.name}</span>
+            <p className="text-xs text-gray-500 mb-6">
+              Account: <span className="font-bold text-gray-800">{txModal.account?.name}</span>
             </p>
 
             <div className="space-y-4 mb-6">
@@ -465,7 +505,7 @@ export function Accounts() {
                 <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Remarks</label>
                 <Input
                   type="text"
-                  placeholder={txModal.type === 'DEPOSIT' ? 'e.g., End of day cash' : 'e.g., Vendor payment'}
+                  placeholder={txModal.type === 'DEPOSIT' ? 'e.g., Cash addition' : 'e.g., Milk vendor payment'}
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
                   className="rounded-xl"
@@ -498,8 +538,8 @@ export function Accounts() {
 
       {/* Add Account Modal */}
       {addModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-900">New Account</h2>
               <button
@@ -514,7 +554,7 @@ export function Accounts() {
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Account Name</label>
                 <Input
-                  placeholder="e.g., Petty Cash, Bank HDFC"
+                  placeholder="e.g., Main Register, Petty Cash, HDFC"
                   value={newAccName}
                   onChange={(e) => setNewAccName(e.target.value)}
                   className="rounded-xl"
@@ -568,7 +608,7 @@ export function Accounts() {
                 Cancel
               </Button>
               <Button
-                className="flex-1 rounded-2xl bg-[#8b5a2b] hover:bg-[#6b4423] text-white"
+                className="flex-1 rounded-2xl bg-[#8b5a2b] hover:bg-[#6b4423] text-white font-semibold"
                 onClick={() => addAccountMutation.mutate()}
                 disabled={addAccountMutation.isPending}
               >

@@ -4,13 +4,14 @@ import { useAuth } from '@/features/auth/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import {
-  Landmark,
   Users,
-  ArrowUpRight,
-  ArrowDownRight,
   AlertCircle,
-  TrendingUp,
   Plus,
+  ArrowRight,
+  ClipboardList,
+  Cookie,
+  CheckCircle2,
+  Phone,
 } from 'lucide-react'
 
 function getGreeting() {
@@ -20,246 +21,248 @@ function getGreeting() {
   return 'Good evening'
 }
 
-type QuickAction = {
-  label: string
-  icon: React.ElementType
-  path: string
-  color: string
-  bg: string
+type OutstandingCustomer = {
+  id: string
+  name: string
+  phone: string | null
+  outstanding: number
 }
 
 export function Dashboard() {
   const { profile } = useAuth()
   const navigate = useNavigate()
 
-  // Fetch all accounts for grand total
-  const { data: accounts = [] } = useQuery<any[]>({
-    queryKey: ['store_accounts'],
+  // 1. Fetch all customers
+  const { data: customers = [], isLoading: isLoadingCustomers } = useQuery({
+    queryKey: ['dashboard_customers'],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from('store_accounts')
-        .select('balance')
-      if (error) throw error
+      const { data, error } = await supabase
+        .from('customers')
+        .select('id, name, phone, created_at')
+        .order('name', { ascending: true })
+      if (error) {
+        console.error('Error loading customers:', error)
+        return []
+      }
       return data || []
     },
   })
-  const totalCash = accounts.reduce((sum: number, a: any) => sum + Number(a.balance), 0)
 
-  // Fetch customer outstanding
-  const { data: outstandingEntries = [] } = useQuery<any[]>({
-    queryKey: ['customer_outstanding_all'],
+  // 2. Fetch customer outstanding dues (strictly customers, NO store accounts)
+  const { data: outstandingList = [], isLoading: isLoadingOutstanding } = useQuery<OutstandingCustomer[]>({
+    queryKey: ['dashboard_customer_outstanding'],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data: entries, error } = await (supabase as any)
         .from('customer_outstanding')
-        .select('amount, customer_id, customers(name)')
+        .select('amount, customer_id, customers(id, name, phone)')
         .eq('is_settled', false)
-      if (error) throw error
-      return data || []
+
+      if (error) {
+        console.error('Error fetching customer outstanding:', error)
+        return []
+      }
+
+      const map: Record<string, OutstandingCustomer> = {}
+      for (const row of entries || []) {
+        const cid = row.customer_id
+        if (!map[cid]) {
+          map[cid] = {
+            id: cid,
+            name: row.customers?.name || 'Customer',
+            phone: row.customers?.phone || null,
+            outstanding: 0,
+          }
+        }
+        map[cid].outstanding += Number(row.amount || 0)
+      }
+
+      return Object.values(map).sort((a, b) => b.outstanding - a.outstanding)
     },
   })
-  const totalOutstanding = outstandingEntries.reduce((sum: number, e: any) => sum + Number(e.amount), 0)
 
-  // Fetch recent account transactions
-  const { data: recentTx = [] } = useQuery<any[]>({
-    queryKey: ['recent_transactions_home'],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from('account_transactions')
-        .select('*, store_accounts(name)')
-        .order('created_at', { ascending: false })
-        .limit(4)
-      if (error) throw error
-      return data || []
-    },
-  })
+  const totalOutstanding = outstandingList.reduce((sum, c) => sum + c.outstanding, 0)
+  const customersWithDuesCount = outstandingList.length
 
-  // Top outstanding customers
-  const outstandingByCustomer: Record<string, { name: string; amount: number }> = {}
-  for (const e of outstandingEntries) {
-    const cid = e.customer_id
-    if (!outstandingByCustomer[cid]) {
-      outstandingByCustomer[cid] = { name: e.customers?.name || 'Unknown', amount: 0 }
-    }
-    outstandingByCustomer[cid].amount += Number(e.amount)
-  }
-  const topOutstanding = Object.entries(outstandingByCustomer)
-    .map(([, v]) => v)
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, 3)
-
-  const quickActions: QuickAction[] = [
-    { label: 'Add Cash', icon: ArrowUpRight, path: '/accounts', color: 'text-green-600', bg: 'bg-green-50' },
-    { label: 'Add Customer', icon: Plus, path: '/customers/new', color: 'text-[#8b5a2b]', bg: 'bg-[#f4e8d8]' },
-    { label: 'View Ledger', icon: Landmark, path: '/accounts', color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Customers', icon: Users, path: '/customers', color: 'text-purple-600', bg: 'bg-purple-50' },
+  const quickLinks = [
+    { label: 'Customers', icon: Users, path: '/customers', color: 'text-[#8b5a2b]', bg: 'bg-[#f4e8d8]' },
+    { label: 'New Customer', icon: Plus, path: '/customers/new', color: 'text-amber-700', bg: 'bg-amber-100' },
+    { label: 'Orders', icon: ClipboardList, path: '/orders', color: 'text-orange-600', bg: 'bg-orange-50' },
+    { label: 'Products', icon: Cookie, path: '/products', color: 'text-rose-600', bg: 'bg-rose-50' },
   ]
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-      {/* Greeting */}
-      <div>
-        <p className="text-gray-400 text-sm font-medium">{format(new Date(), 'EEEE, d MMMM yyyy')}</p>
-        <h1 className="text-2xl font-bold text-gray-900 mt-0.5">
-          {getGreeting()}, {profile?.full_name?.split(' ')[0] || 'there'} 👋
-        </h1>
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
+      {/* Header Greeting */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">
+            {format(new Date(), 'EEEE, d MMMM yyyy')}
+          </p>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 mt-1">
+            {getGreeting()}, {profile?.full_name?.split(' ')[0] || 'Baker'} 👋
+          </h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate('/customers/new')}
+            className="inline-flex items-center gap-2 bg-[#8b5a2b] hover:bg-[#6b4423] text-white px-4 py-2.5 rounded-2xl text-sm font-semibold shadow-sm transition-all"
+          >
+            <Plus className="h-4 w-4" />
+            Add Customer
+          </button>
+        </div>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Cash on Hand */}
-        <button
-          onClick={() => navigate('/accounts')}
-          className="bg-gradient-to-br from-[#8b5a2b] to-[#6b4423] rounded-2xl p-5 text-left shadow-md hover:shadow-lg transition-shadow duration-200"
-        >
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2 bg-white/15 rounded-xl">
-              <Landmark className="h-5 w-5 text-white" />
-            </div>
-            <ArrowUpRight className="h-4 w-4 text-orange-200/60" />
-          </div>
-          <p className="text-orange-200/80 text-xs font-semibold uppercase tracking-widest">Cash on Hand</p>
-          <p className="text-2xl font-bold text-white tabular-nums mt-1">
-            ₹{totalCash.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-          </p>
-        </button>
-
-        {/* Outstanding */}
-        <button
+      {/* Main Stats Cards (Customer Outstanding & Active Customers) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Outstanding Card */}
+        <div
           onClick={() => navigate('/customers')}
-          className={`rounded-2xl p-5 text-left shadow-md hover:shadow-lg transition-shadow duration-200 ${
-            totalOutstanding > 0
-              ? 'bg-gradient-to-br from-orange-500 to-orange-600'
-              : 'bg-gradient-to-br from-green-500 to-green-600'
-          }`}
+          className="cursor-pointer bg-gradient-to-br from-[#8b5a2b] to-[#6b4423] rounded-3xl p-6 text-white shadow-md hover:shadow-lg transition-all duration-200 relative overflow-hidden"
         >
-          <div className="flex items-start justify-between mb-3">
-            <div className="p-2 bg-white/20 rounded-xl">
-              {totalOutstanding > 0
-                ? <AlertCircle className="h-5 w-5 text-white" />
-                : <TrendingUp className="h-5 w-5 text-white" />}
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-orange-200/80 text-xs font-semibold uppercase tracking-widest mb-1">
+                Customer Outstanding
+              </p>
+              <p className="text-3xl md:text-4xl font-bold tabular-nums">
+                ₹{totalOutstanding.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              </p>
             </div>
-            <ArrowUpRight className="h-4 w-4 text-white/40" />
+            <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-sm">
+              <AlertCircle className="h-6 w-6 text-orange-200" />
+            </div>
           </div>
-          <p className="text-white/70 text-xs font-semibold uppercase tracking-widest">Outstanding</p>
-          <p className="text-2xl font-bold text-white tabular-nums mt-1">
-            ₹{totalOutstanding.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-          </p>
-        </button>
+          <div className="mt-5 flex items-center justify-between text-xs text-orange-200/90 pt-3 border-t border-white/15">
+            <span>
+              {isLoadingOutstanding
+                ? 'Calculating...'
+                : customersWithDuesCount > 0
+                ? `${customersWithDuesCount} customer${customersWithDuesCount > 1 ? 's' : ''} with pending dues`
+                : 'All customer dues are cleared'}
+            </span>
+            <span className="flex items-center gap-1 font-semibold text-white">
+              View Dues <ArrowRight className="h-3.5 w-3.5" />
+            </span>
+          </div>
+        </div>
+
+        {/* Total Customers Card */}
+        <div
+          onClick={() => navigate('/customers')}
+          className="cursor-pointer bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between"
+        >
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-gray-400 text-xs font-semibold uppercase tracking-widest mb-1">
+                Total Customers
+              </p>
+              <p className="text-3xl md:text-4xl font-bold text-gray-900 tabular-nums">
+                {isLoadingCustomers ? '...' : customers.length}
+              </p>
+            </div>
+            <div className="p-3 bg-[#f4e8d8] rounded-2xl">
+              <Users className="h-6 w-6 text-[#8b5a2b]" />
+            </div>
+          </div>
+          <div className="mt-5 flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-50">
+            <span>Manage customer profiles & contact details</span>
+            <span className="flex items-center gap-1 font-semibold text-[#8b5a2b]">
+              Directory <ArrowRight className="h-3.5 w-3.5" />
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Action Buttons */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Quick Actions</p>
-        <div className="grid grid-cols-4 gap-3">
-          {quickActions.map((action) => (
+        <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3 px-1">
+          Quick Actions
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {quickLinks.map((link) => (
             <button
-              key={action.label}
-              onClick={() => navigate(action.path)}
-              className="flex flex-col items-center gap-2 p-3 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-200"
+              key={link.label}
+              onClick={() => navigate(link.path)}
+              className="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all text-left"
             >
-              <div className={`p-2.5 rounded-xl ${action.bg}`}>
-                <action.icon className={`h-5 w-5 ${action.color}`} />
+              <div className={`p-2.5 rounded-xl ${link.bg} flex-shrink-0`}>
+                <link.icon className={`h-5 w-5 ${link.color}`} />
               </div>
-              <span className="text-[10px] font-bold text-gray-600 text-center leading-tight">{action.label}</span>
+              <span className="text-xs font-bold text-gray-800">{link.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Two column layout on larger screens */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Recent Transactions */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Recent Transactions</p>
-            <button
-              onClick={() => navigate('/accounts')}
-              className="text-xs font-semibold text-[#8b5a2b] hover:underline"
-            >
-              View all
-            </button>
+      {/* Pending Customer Dues Section */}
+      <div>
+        <div className="flex items-center justify-between mb-3 px-1">
+          <div>
+            <h2 className="text-base font-bold text-gray-900">Pending Customer Dues</h2>
+            <p className="text-xs text-gray-500">Tap any customer to view details or change their outstanding</p>
           </div>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            {recentTx.length === 0 ? (
-              <div className="p-8 text-center text-gray-400">
-                <Landmark className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                <p className="text-sm font-medium">No transactions yet</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-50">
-                {recentTx.map((tx: any) => {
-                  const isIncome = tx.type === 'DEPOSIT' || tx.type === 'INITIAL'
-                  return (
-                    <div key={tx.id} className="px-4 py-3 flex items-center justify-between">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center ${
-                          isIncome ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
-                        }`}>
-                          {isIncome
-                            ? <ArrowUpRight className="w-4 h-4" />
-                            : <ArrowDownRight className="w-4 h-4" />}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-gray-900 truncate">{tx.remarks}</p>
-                          <p className="text-[10px] text-gray-400 mt-0.5">
-                            {tx.store_accounts?.name} · {format(new Date(tx.created_at), 'MMM d, h:mm a')}
-                          </p>
-                        </div>
-                      </div>
-                      <span className={`text-sm font-bold tabular-nums flex-shrink-0 ml-3 ${isIncome ? 'text-green-600' : 'text-red-500'}`}>
-                        {isIncome ? '+' : '-'}₹{Number(tx.amount).toLocaleString('en-IN')}
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
+          <button
+            onClick={() => navigate('/customers')}
+            className="text-xs font-semibold text-[#8b5a2b] hover:text-[#6b4423] transition-colors"
+          >
+            View all customers →
+          </button>
         </div>
 
-        {/* Top Outstanding Customers */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Top Outstanding</p>
-            <button
-              onClick={() => navigate('/customers')}
-              className="text-xs font-semibold text-[#8b5a2b] hover:underline"
-            >
-              View all
-            </button>
+        {isLoadingOutstanding ? (
+          <div className="p-12 bg-white rounded-2xl border border-gray-100 text-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#8b5a2b] border-t-transparent mx-auto" />
+            <p className="text-xs text-gray-400 mt-3 font-medium">Checking customer balances...</p>
           </div>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            {topOutstanding.length === 0 ? (
-              <div className="p-8 text-center text-gray-400">
-                <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                <p className="text-sm font-medium">All payments cleared!</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-50">
-                {topOutstanding.map((c, i) => (
-                  <button
-                    key={i}
-                    onClick={() => navigate('/customers')}
-                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50/80 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-xl bg-[#f4e8d8] flex items-center justify-center text-[#8b5a2b] font-bold text-sm flex-shrink-0">
-                        {c.name.charAt(0).toUpperCase()}
-                      </div>
-                      <p className="text-sm font-semibold text-gray-900">{c.name}</p>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <AlertCircle className="h-3.5 w-3.5 text-orange-400" />
-                      <span className="text-sm font-bold text-orange-600 tabular-nums">
-                        ₹{c.amount.toLocaleString('en-IN')}
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
+        ) : outstandingList.length === 0 ? (
+          <div className="p-8 bg-white rounded-2xl border border-gray-100 shadow-sm text-center">
+            <div className="p-3 bg-green-50 rounded-2xl w-fit mx-auto mb-2">
+              <CheckCircle2 className="h-8 w-8 text-green-600" />
+            </div>
+            <h3 className="text-sm font-bold text-gray-900">All Cleared!</h3>
+            <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto">
+              There are no pending customer dues at the moment.
+            </p>
           </div>
-        </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-50 overflow-hidden">
+            {outstandingList.slice(0, 5).map((cust) => (
+              <div
+                key={cust.id}
+                onClick={() => navigate(`/customers/${cust.id}`)}
+                className="p-4 flex items-center justify-between hover:bg-gray-50/80 cursor-pointer transition-colors"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-10 w-10 rounded-2xl bg-[#f4e8d8] flex items-center justify-center text-[#8b5a2b] font-bold text-base flex-shrink-0">
+                    {(cust.name || 'C').charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-gray-900 text-sm truncate">{cust.name}</p>
+                    {cust.phone && (
+                      <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                        <Phone className="h-3 w-3" />
+                        {cust.phone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 flex-shrink-0 ml-4">
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-orange-600 tabular-nums">
+                      ₹{cust.outstanding.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </p>
+                    <span className="text-[10px] font-semibold text-orange-400 uppercase tracking-wider">
+                      Owed
+                    </span>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-gray-300" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

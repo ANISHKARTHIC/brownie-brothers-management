@@ -1,7 +1,19 @@
-import { Outlet, NavLink } from 'react-router-dom'
+import { Outlet, NavLink, useLocation } from 'react-router-dom'
 import { Home, Landmark, Users, MoreHorizontal } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 
 export function AppLayout() {
+  const location = useLocation()
+  const mainRef = useRef<HTMLElement>(null)
+
+  // Scroll to top whenever route changes to prevent blank view caused by retained scroll offset
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0
+    }
+    window.scrollTo(0, 0)
+  }, [location.pathname])
+
   const navItems = [
     { name: 'Home', path: '/', icon: Home },
     { name: 'Accounts', path: '/accounts', icon: Landmark },
@@ -10,9 +22,9 @@ export function AppLayout() {
   ]
 
   return (
-    <div className="flex h-screen w-full flex-col bg-[#fafaf9] md:flex-row">
+    <div className="flex h-screen w-full flex-col bg-[#fafaf9] md:flex-row overflow-hidden">
       {/* Desktop Sidebar (hidden on mobile) */}
-      <aside className="hidden w-64 flex-col border-r border-gray-100 bg-white md:flex shadow-sm">
+      <aside className="hidden w-64 flex-col border-r border-gray-100 bg-white md:flex shadow-sm flex-shrink-0">
         <div className="flex h-16 items-center px-6 text-xl font-bold text-[#8b5a2b] gap-2.5">
           <img
             src="/logo.png"
@@ -47,31 +59,40 @@ export function AppLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-auto pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0 pt-[env(safe-area-inset-top)]">
+      <main
+        ref={mainRef}
+        className="flex-1 min-h-0 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-8 pt-[env(safe-area-inset-top)]"
+      >
         <Outlet />
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-gray-100 bg-white/95 backdrop-blur-md md:hidden items-center justify-around px-2 pt-2 pb-[calc(0.6rem+env(safe-area-inset-bottom))] min-h-[calc(4.5rem+env(safe-area-inset-bottom))]">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-gray-200/80 bg-white/95 backdrop-blur-md md:hidden items-center justify-around px-2 pt-2 pb-[calc(0.6rem+env(safe-area-inset-bottom))] min-h-[calc(4.5rem+env(safe-area-inset-bottom))] shadow-lg">
         {navItems.map((item) => (
           <NavLink
             key={item.name}
             to={item.path}
             end={item.path === '/'}
             className={({ isActive }) =>
-              `flex flex-1 flex-col items-center justify-center gap-1 py-1 rounded-xl mx-1 transition-all duration-200 ${
-                isActive
-                  ? 'text-[#8b5a2b]'
-                  : 'text-gray-400 hover:text-gray-700'
+              `flex flex-1 flex-col items-center justify-center py-1 rounded-xl mx-1 transition-all duration-200 ${
+                isActive ? 'text-[#8b5a2b]' : 'text-gray-400 hover:text-gray-700'
               }`
             }
           >
             {({ isActive }) => (
               <>
-                <div className={`p-1.5 rounded-xl transition-all duration-200 ${isActive ? 'bg-[#f4e8d8]' : ''}`}>
+                <div
+                  className={`p-1.5 rounded-xl transition-all duration-200 ${
+                    isActive ? 'bg-[#f4e8d8] text-[#8b5a2b]' : 'text-gray-500'
+                  }`}
+                >
                   <item.icon className="h-5 w-5" />
                 </div>
-                <span className={`text-[10px] font-semibold tracking-wide ${isActive ? 'text-[#8b5a2b]' : 'text-gray-400'}`}>
+                <span
+                  className={`text-[10px] font-semibold tracking-tight mt-0.5 ${
+                    isActive ? 'text-[#8b5a2b]' : 'text-gray-500'
+                  }`}
+                >
                   {item.name}
                 </span>
               </>
