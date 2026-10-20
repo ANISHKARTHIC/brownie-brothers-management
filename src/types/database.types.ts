@@ -14,21 +14,22 @@ export interface Database {
           id: string
           name: string
           balance: number
+          account_type: string
           created_at: string
-          updated_at: string
         }
         Insert: {
           id?: string
           name: string
           balance?: number
+          account_type?: string
           created_at?: string
-          updated_at?: string
         }
         Update: {
           id?: string
           name?: string
           balance?: number
-          updated_at?: string
+          account_type?: string
+          created_at?: string
         }
       }
       account_transactions: {
@@ -303,6 +304,38 @@ export interface Database {
           supplier_id?: string | null
           created_at?: string
           updated_at?: string
+        }
+      }
+      customer_outstanding: {
+        Row: {
+          id: string
+          customer_id: string
+          amount: number
+          description: string
+          is_settled: boolean
+          settled_at: string | null
+          created_by: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          customer_id: string
+          amount: number
+          description: string
+          is_settled?: boolean
+          settled_at?: string | null
+          created_by?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          customer_id?: string
+          amount?: number
+          description?: string
+          is_settled?: boolean
+          settled_at?: string | null
+          created_by?: string | null
+          created_at?: string
         }
       }
       // TODO: Add full table types as needed

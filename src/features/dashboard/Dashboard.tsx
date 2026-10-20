@@ -1,198 +1,265 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase/client'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { useAuth } from '@/features/auth/AuthContext'
-import { startOfDay, endOfDay } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
-import { Hand, AlertTriangle, ArrowRight, Package, CheckCircle2 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { format } from 'date-fns'
+import {
+  Landmark,
+  Users,
+  ArrowUpRight,
+  ArrowDownRight,
+  AlertCircle,
+  TrendingUp,
+  Plus,
+} from 'lucide-react'
+
+function getGreeting() {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
+type QuickAction = {
+  label: string
+  icon: React.ElementType
+  path: string
+  color: string
+  bg: string
+}
 
 export function Dashboard() {
-  const getGreeting = () => {
-    const hour = new Date().getHours()
-    if (hour < 12) return 'Good morning'
-    if (hour < 17) return 'Good afternoon'
-    return 'Good evening'
-  }
-
   const { profile } = useAuth()
   const navigate = useNavigate()
 
-  // Fetch today's orders
-  const { data: todayOrders, isLoading: isLoadingOrders } = useQuery({
-    queryKey: ['dashboard_orders'],
+  // Fetch all accounts for grand total
+  const { data: accounts = [] } = useQuery<any[]>({
+    queryKey: ['store_accounts'],
     queryFn: async () => {
-      const todayStart = startOfDay(new Date()).toISOString()
-      const todayEnd = endOfDay(new Date()).toISOString()
-      
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          id,
-          order_number,
-          status,
-          total,
-          payment_status,
-          created_at,
-          customer_id,
-          customers ( name )
-        `)
-        .gte('created_at', todayStart)
-        .lte('created_at', todayEnd)
+      const { data, error } = await (supabase as any)
+        .from('store_accounts')
+        .select('balance')
+      if (error) throw error
+      return data || []
+    },
+  })
+  const totalCash = accounts.reduce((sum: number, a: any) => sum + Number(a.balance), 0)
+
+  // Fetch customer outstanding
+  const { data: outstandingEntries = [] } = useQuery<any[]>({
+    queryKey: ['customer_outstanding_all'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('customer_outstanding')
+        .select('amount, customer_id, customers(name)')
+        .eq('is_settled', false)
+      if (error) throw error
+      return data || []
+    },
+  })
+  const totalOutstanding = outstandingEntries.reduce((sum: number, e: any) => sum + Number(e.amount), 0)
+
+  // Fetch recent account transactions
+  const { data: recentTx = [] } = useQuery<any[]>({
+    queryKey: ['recent_transactions_home'],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from('account_transactions')
+        .select('*, store_accounts(name)')
         .order('created_at', { ascending: false })
-
+        .limit(4)
       if (error) throw error
-      return (data as any[]) || []
-    }
+      return data || []
+    },
   })
 
-  // Fetch low stock inventory
-  const { data: inventoryAlerts, isLoading: isLoadingInventory } = useQuery({
-    queryKey: ['dashboard_inventory'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('inventory_items')
-        .select('*')
-        
-      if (error) throw error
-      return ((data as any[]) || []).filter(item => item.current_stock <= item.min_stock)
+  // Top outstanding customers
+  const outstandingByCustomer: Record<string, { name: string; amount: number }> = {}
+  for (const e of outstandingEntries) {
+    const cid = e.customer_id
+    if (!outstandingByCustomer[cid]) {
+      outstandingByCustomer[cid] = { name: e.customers?.name || 'Unknown', amount: 0 }
     }
-  })
+    outstandingByCustomer[cid].amount += Number(e.amount)
+  }
+  const topOutstanding = Object.entries(outstandingByCustomer)
+    .map(([, v]) => v)
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 3)
 
-  const orderCount = todayOrders?.length || 0
-  const pendingOrdersCount = todayOrders?.filter(o => o.status === 'PENDING' || o.status === 'PREPARING').length || 0
-  const completedOrdersCount = todayOrders?.filter(o => o.status === 'READY' || o.status === 'DELIVERED').length || 0
-  const lowStockCount = inventoryAlerts?.length || 0
+  const quickActions: QuickAction[] = [
+    { label: 'Add Cash', icon: ArrowUpRight, path: '/accounts', color: 'text-green-600', bg: 'bg-green-50' },
+    { label: 'Add Customer', icon: Plus, path: '/customers/new', color: 'text-[#8b5a2b]', bg: 'bg-[#f4e8d8]' },
+    { label: 'View Ledger', icon: Landmark, path: '/accounts', color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Customers', icon: Users, path: '/customers', color: 'text-purple-600', bg: 'bg-purple-50' },
+  ]
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 flex items-center">
-            {getGreeting()}, {profile?.full_name?.split(' ')[0] || 'there'} <Hand className="inline h-8 w-8 text-yellow-500 ml-2" />
-          </h1>
-          <p className="text-gray-500 mt-1">Here's what's happening with your business today.</p>
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+      {/* Greeting */}
+      <div>
+        <p className="text-gray-400 text-sm font-medium">{format(new Date(), 'EEEE, d MMMM yyyy')}</p>
+        <h1 className="text-2xl font-bold text-gray-900 mt-0.5">
+          {getGreeting()}, {profile?.full_name?.split(' ')[0] || 'there'} 👋
+        </h1>
+      </div>
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* Cash on Hand */}
+        <button
+          onClick={() => navigate('/accounts')}
+          className="bg-gradient-to-br from-[#8b5a2b] to-[#6b4423] rounded-2xl p-5 text-left shadow-md hover:shadow-lg transition-shadow duration-200"
+        >
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-white/15 rounded-xl">
+              <Landmark className="h-5 w-5 text-white" />
+            </div>
+            <ArrowUpRight className="h-4 w-4 text-orange-200/60" />
+          </div>
+          <p className="text-orange-200/80 text-xs font-semibold uppercase tracking-widest">Cash on Hand</p>
+          <p className="text-2xl font-bold text-white tabular-nums mt-1">
+            ₹{totalCash.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+          </p>
+        </button>
+
+        {/* Outstanding */}
+        <button
+          onClick={() => navigate('/customers')}
+          className={`rounded-2xl p-5 text-left shadow-md hover:shadow-lg transition-shadow duration-200 ${
+            totalOutstanding > 0
+              ? 'bg-gradient-to-br from-orange-500 to-orange-600'
+              : 'bg-gradient-to-br from-green-500 to-green-600'
+          }`}
+        >
+          <div className="flex items-start justify-between mb-3">
+            <div className="p-2 bg-white/20 rounded-xl">
+              {totalOutstanding > 0
+                ? <AlertCircle className="h-5 w-5 text-white" />
+                : <TrendingUp className="h-5 w-5 text-white" />}
+            </div>
+            <ArrowUpRight className="h-4 w-4 text-white/40" />
+          </div>
+          <p className="text-white/70 text-xs font-semibold uppercase tracking-widest">Outstanding</p>
+          <p className="text-2xl font-bold text-white tabular-nums mt-1">
+            ₹{totalOutstanding.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+          </p>
+        </button>
+      </div>
+
+      {/* Quick Actions */}
+      <div>
+        <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Quick Actions</p>
+        <div className="grid grid-cols-4 gap-3">
+          {quickActions.map((action) => (
+            <button
+              key={action.label}
+              onClick={() => navigate(action.path)}
+              className="flex flex-col items-center gap-2 p-3 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all duration-200"
+            >
+              <div className={`p-2.5 rounded-xl ${action.bg}`}>
+                <action.icon className={`h-5 w-5 ${action.color}`} />
+              </div>
+              <span className="text-[10px] font-bold text-gray-600 text-center leading-tight">{action.label}</span>
+            </button>
+          ))}
         </div>
-      </header>
+      </div>
 
-      <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <Card className="border-none shadow-sm bg-gradient-to-br from-white to-gray-50">
-          <CardContent className="p-6">
-            <p className="text-sm font-medium text-gray-500 mb-1">Today's Orders</p>
-            <div className="text-3xl font-bold text-gray-900">
-              {isLoadingOrders ? '...' : orderCount}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-sm bg-gradient-to-br from-white to-orange-50/50">
-          <CardContent className="p-6">
-            <p className="text-sm font-medium text-gray-500 mb-1 flex items-center gap-1">
-              <Package className="w-4 h-4 text-orange-500" /> Pending Prep
-            </p>
-            <div className="text-3xl font-bold text-orange-600">
-              {isLoadingOrders ? '...' : pendingOrdersCount}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-sm bg-gradient-to-br from-white to-green-50/50">
-          <CardContent className="p-6">
-            <p className="text-sm font-medium text-gray-500 mb-1 flex items-center gap-1">
-              <CheckCircle2 className="w-4 h-4 text-green-500" /> Completed
-            </p>
-            <div className="text-3xl font-bold text-green-700">
-              {isLoadingOrders ? '...' : completedOrdersCount}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-none shadow-sm bg-gradient-to-br from-white to-red-50/50">
-          <CardContent className="p-6">
-            <p className="text-sm font-medium text-gray-500 mb-1 flex items-center gap-1">
-              <AlertTriangle className="w-4 h-4 text-red-500" /> Stock Alerts
-            </p>
-            <div className="text-3xl font-bold text-red-600">
-              {isLoadingInventory ? '...' : lowStockCount}
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-bold">Recent Orders</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/orders')} className="text-[#8b5a2b]">
-              View All <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {isLoadingOrders ? (
-              <div className="flex justify-center p-8"><div className="w-8 h-8 border-4 border-[#8b5a2b] border-t-transparent rounded-full animate-spin"></div></div>
-            ) : todayOrders && todayOrders.length > 0 ? (
-              <div className="space-y-4">
-                {todayOrders.slice(0, 5).map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                    <div>
-                      <p className="font-semibold text-gray-900">Order #{order.order_number}</p>
-                      <p className="text-sm text-gray-500">{order.customers?.name || 'Walk-in Customer'}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-gray-900">₹{order.total.toLocaleString()}</p>
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        order.status === 'DELIVERED' || order.status === 'READY' 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-orange-100 text-orange-700'
-                      }`}>
-                        {order.status}
+      {/* Two column layout on larger screens */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Recent Transactions */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Recent Transactions</p>
+            <button
+              onClick={() => navigate('/accounts')}
+              className="text-xs font-semibold text-[#8b5a2b] hover:underline"
+            >
+              View all
+            </button>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            {recentTx.length === 0 ? (
+              <div className="p-8 text-center text-gray-400">
+                <Landmark className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm font-medium">No transactions yet</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {recentTx.map((tx: any) => {
+                  const isIncome = tx.type === 'DEPOSIT' || tx.type === 'INITIAL'
+                  return (
+                    <div key={tx.id} className="px-4 py-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center ${
+                          isIncome ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
+                        }`}>
+                          {isIncome
+                            ? <ArrowUpRight className="w-4 h-4" />
+                            : <ArrowDownRight className="w-4 h-4" />}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-gray-900 truncate">{tx.remarks}</p>
+                          <p className="text-[10px] text-gray-400 mt-0.5">
+                            {tx.store_accounts?.name} · {format(new Date(tx.created_at), 'MMM d, h:mm a')}
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`text-sm font-bold tabular-nums flex-shrink-0 ml-3 ${isIncome ? 'text-green-600' : 'text-red-500'}`}>
+                        {isIncome ? '+' : '-'}₹{Number(tx.amount).toLocaleString('en-IN')}
                       </span>
                     </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center p-8 text-gray-500 bg-gray-50 rounded-xl">
-                No orders placed today.
+                  )
+                })}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="border-none shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg font-bold">Inventory Alerts</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/inventory')} className="text-[#8b5a2b]">
-              Restock <ArrowRight className="w-4 h-4 ml-1" />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            {isLoadingInventory ? (
-              <div className="flex justify-center p-8"><div className="w-8 h-8 border-4 border-[#8b5a2b] border-t-transparent rounded-full animate-spin"></div></div>
-            ) : inventoryAlerts && inventoryAlerts.length > 0 ? (
-              <div className="space-y-4">
-                {inventoryAlerts.slice(0, 5).map((item: any) => (
-                  <div key={item.id} className="flex items-center gap-3 p-3 bg-red-50/50 rounded-xl border border-red-100">
-                    <div className="p-2 bg-red-100 rounded-lg text-red-600">
-                      <AlertTriangle className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900 text-sm">{item.name}</p>
-                      <p className="text-xs text-red-600 font-semibold">
-                        {item.current_stock} {item.unit} left (Min: {item.min_stock})
-                      </p>
-                    </div>
-                  </div>
-                ))}
+        {/* Top Outstanding Customers */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Top Outstanding</p>
+            <button
+              onClick={() => navigate('/customers')}
+              className="text-xs font-semibold text-[#8b5a2b] hover:underline"
+            >
+              View all
+            </button>
+          </div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            {topOutstanding.length === 0 ? (
+              <div className="p-8 text-center text-gray-400">
+                <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm font-medium">All payments cleared!</p>
               </div>
             ) : (
-              <div className="text-center p-8 text-gray-500 bg-green-50 rounded-xl border border-green-100">
-                <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                All inventory levels are good!
+              <div className="divide-y divide-gray-50">
+                {topOutstanding.map((c, i) => (
+                  <button
+                    key={i}
+                    onClick={() => navigate('/customers')}
+                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50/80 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-xl bg-[#f4e8d8] flex items-center justify-center text-[#8b5a2b] font-bold text-sm flex-shrink-0">
+                        {c.name.charAt(0).toUpperCase()}
+                      </div>
+                      <p className="text-sm font-semibold text-gray-900">{c.name}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <AlertCircle className="h-3.5 w-3.5 text-orange-400" />
+                      <span className="text-sm font-bold text-orange-600 tabular-nums">
+                        ₹{c.amount.toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                  </button>
+                ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   )
