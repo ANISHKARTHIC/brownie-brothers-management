@@ -20,6 +20,7 @@ import {
   TrendingUp,
   Users,
   ChevronRight,
+  Sparkles,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -50,6 +51,23 @@ const ACCOUNT_TYPE_META: Record<string, { icon: React.ElementType; color: string
   OTHER: { icon: CreditCard, color: 'text-gray-600',   bg: 'bg-gray-50'   },
 }
 
+const QUICK_AMOUNTS = [100, 500, 1000, 2000, 5000]
+
+const DEPOSIT_REMARK_PRESETS = [
+  'Cash Sales',
+  'End of Day Addition',
+  'Owner Deposit',
+  'Customer Direct Payment',
+]
+
+const WITHDRAW_REMARK_PRESETS = [
+  'Milk & Ingredients',
+  'Packaging Material',
+  'Vendor Payment',
+  'Staff Advance / Salary',
+  'Daily Misc Expense',
+]
+
 function AccountCard({
   account,
   onDeposit,
@@ -64,15 +82,15 @@ function AccountCard({
   const Icon = meta.icon
 
   return (
-    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 flex flex-col justify-between gap-4 hover:shadow-md transition-all duration-200">
+    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-4 sm:p-5 flex flex-col justify-between gap-4 hover:shadow-md transition-all duration-200">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className={`p-2.5 rounded-2xl ${meta.bg}`}>
+          <div className={`p-2.5 rounded-2xl ${meta.bg} flex-shrink-0`}>
             <Icon className={`h-5 w-5 ${meta.color}`} />
           </div>
-          <div>
-            <p className="font-bold text-gray-900 text-sm leading-tight">{account.name}</p>
-            <p className="text-xs text-gray-400 font-medium capitalize mt-0.5">
+          <div className="min-w-0">
+            <p className="font-bold text-gray-900 text-sm leading-tight truncate">{account.name}</p>
+            <p className="text-[11px] text-gray-400 font-medium capitalize mt-0.5">
               {accType.toLowerCase()}
             </p>
           </div>
@@ -80,23 +98,27 @@ function AccountCard({
       </div>
 
       <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">Balance</p>
-        <p className="text-3xl font-extrabold text-gray-900 tabular-nums">
+        <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">
+          Available Balance
+        </p>
+        <p className="text-2xl sm:text-3xl font-extrabold text-gray-900 tabular-nums">
           ₹{Number(account.balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
         </p>
       </div>
 
-      <div className="flex gap-2 pt-2 border-t border-gray-50">
+      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-50">
         <button
+          type="button"
           onClick={() => onWithdraw(account)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-red-50 text-red-600 text-xs font-bold hover:bg-red-100 transition-colors"
+          className="w-full flex items-center justify-center gap-1.5 py-3 px-3 rounded-2xl bg-red-50 text-red-600 text-xs sm:text-sm font-bold hover:bg-red-100 active:scale-[0.98] transition-all"
         >
           <ArrowDownRight className="h-4 w-4" />
           Withdraw
         </button>
         <button
+          type="button"
           onClick={() => onDeposit(account)}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-green-50 text-green-700 text-xs font-bold hover:bg-green-100 transition-colors"
+          className="w-full flex items-center justify-center gap-1.5 py-3 px-3 rounded-2xl bg-green-50 text-green-700 text-xs sm:text-sm font-bold hover:bg-green-100 active:scale-[0.98] transition-all"
         >
           <ArrowUpRight className="h-4 w-4" />
           Deposit
@@ -199,7 +221,7 @@ export function Accounts() {
         p_account_id: txModal.account.id,
         p_type: txModal.type,
         p_amount: Number(amount),
-        p_remarks: remarks,
+        p_remarks: remarks.trim(),
         p_user_id: profile?.id || null,
       })
       if (error) throw error
@@ -256,6 +278,11 @@ export function Accounts() {
     setRemarks('')
   }
 
+  const handleAddPresetAmount = (value: number) => {
+    const current = Number(amount) || 0
+    setAmount(String(current + value))
+  }
+
   if (isLoadingAccounts) {
     return (
       <div className="flex h-[70vh] items-center justify-center">
@@ -265,75 +292,83 @@ export function Accounts() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
+    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-5 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900">Accounts & Cash</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manage split cash, bank balances, and customer dues</p>
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-gray-900">
+            Accounts & Cash
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+            Track split cash, bank, and customer outstanding
+          </p>
         </div>
         <Button
           onClick={() => setAddModal(true)}
-          className="bg-[#8b5a2b] hover:bg-[#6b4423] text-white rounded-2xl shadow-sm text-xs md:text-sm"
+          className="bg-[#8b5a2b] hover:bg-[#6b4423] text-white rounded-2xl shadow-sm text-xs md:text-sm py-2 sm:py-2.5 px-3 sm:px-4 active:scale-95 transition-transform"
         >
-          <Plus className="h-4 w-4 mr-1.5" />
+          <Plus className="h-4 w-4 mr-1" />
           Add Account
         </Button>
       </div>
 
       {/* Grand Total Hero Card */}
-      <div className="bg-gradient-to-br from-[#8b5a2b] to-[#6b4423] rounded-3xl p-6 text-white shadow-lg">
-        <div className="flex items-start justify-between mb-6">
+      <div className="bg-gradient-to-br from-[#8b5a2b] to-[#6b4423] rounded-3xl p-5 sm:p-7 text-white shadow-lg">
+        <div className="flex items-start justify-between mb-4 sm:mb-6">
           <div>
-            <p className="text-orange-200/80 text-xs font-semibold uppercase tracking-widest mb-1">
+            <p className="text-orange-200/80 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-1">
               Total Balance in Accounts
             </p>
-            <p className="text-3xl md:text-4xl font-extrabold tabular-nums">
+            <p className="text-3xl sm:text-4xl font-extrabold tabular-nums">
               ₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </p>
           </div>
-          <div className="p-3 bg-white/10 rounded-2xl">
+          <div className="p-2.5 sm:p-3 bg-white/10 rounded-2xl backdrop-blur-sm">
             <Landmark className="h-6 w-6 text-orange-200" />
           </div>
         </div>
 
         {/* Added Customer Outstanding row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-white/20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-white/20">
           <div
             onClick={() => navigate('/customers')}
-            className="cursor-pointer bg-white/10 hover:bg-white/15 p-3.5 rounded-2xl transition-colors flex items-center justify-between"
+            className="cursor-pointer bg-white/10 hover:bg-white/15 active:bg-white/20 p-3.5 rounded-2xl transition-all flex items-center justify-between"
           >
             <div>
-              <p className="text-orange-200 text-xs font-medium flex items-center gap-1.5">
+              <p className="text-orange-200 text-xs font-semibold flex items-center gap-1.5">
                 <Users className="h-3.5 w-3.5" /> Added Customer Outstanding
               </p>
-              <p className="text-white font-bold text-lg tabular-nums mt-0.5">
+              <p className="text-white font-extrabold text-base sm:text-lg tabular-nums mt-0.5">
                 + ₹{customerOutstanding.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </p>
             </div>
-            <ChevronRight className="h-4 w-4 text-orange-200/70" />
+            <div className="flex items-center gap-1 text-xs text-orange-200 font-bold">
+              <span>View</span>
+              <ChevronRight className="h-4 w-4" />
+            </div>
           </div>
 
           <div className="bg-white/10 p-3.5 rounded-2xl flex items-center justify-between">
             <div>
-              <p className="text-orange-200 text-xs font-medium flex items-center gap-1.5">
+              <p className="text-orange-200 text-xs font-semibold flex items-center gap-1.5">
                 <TrendingUp className="h-3.5 w-3.5" /> Total Expected Assets
               </p>
-              <p className="text-white font-extrabold text-lg tabular-nums mt-0.5">
+              <p className="text-white font-extrabold text-base sm:text-lg tabular-nums mt-0.5">
                 ₹{(grandTotal + customerOutstanding).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </p>
             </div>
+            <Sparkles className="h-5 w-5 text-orange-200/60" />
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl w-fit">
+      <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl w-full sm:w-fit">
         {(['overview', 'ledger'] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-5 py-2 rounded-xl text-xs font-bold capitalize transition-all duration-200 ${
+            className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold capitalize transition-all duration-200 ${
               activeTab === tab
                 ? 'bg-white text-gray-900 shadow-sm'
                 : 'text-gray-500 hover:text-gray-700'
@@ -353,15 +388,18 @@ export function Accounts() {
                 <Landmark className="h-10 w-10 text-[#8b5a2b]" />
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-1">No Accounts Yet</h3>
-              <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+              <p className="text-gray-500 text-xs sm:text-sm mb-6 max-w-sm mx-auto">
                 Add your split accounts (such as Main Register Cash, Petty Cash, Bank Account, or UPI) to track them separately.
               </p>
-              <Button onClick={() => setAddModal(true)} className="bg-[#8b5a2b] hover:bg-[#6b4423] text-white rounded-2xl">
+              <Button
+                onClick={() => setAddModal(true)}
+                className="bg-[#8b5a2b] hover:bg-[#6b4423] text-white rounded-2xl py-3 px-6 text-sm font-bold active:scale-95 transition-transform"
+              >
                 <Plus className="h-4 w-4 mr-1.5" /> Add First Account
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
               {accounts.map((account) => (
                 <AccountCard
                   key={account.id}
@@ -379,7 +417,7 @@ export function Accounts() {
       {activeTab === 'ledger' && (
         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
           {/* Ledger filter */}
-          <div className="p-4 border-b border-gray-50 flex items-center gap-2 overflow-x-auto">
+          <div className="p-3 sm:p-4 border-b border-gray-50 flex items-center gap-2 overflow-x-auto no-scrollbar">
             <History className="h-4 w-4 text-gray-400 flex-shrink-0" />
             <button
               onClick={() => setLedgerFilter('ALL')}
@@ -422,7 +460,7 @@ export function Accounts() {
                 const isIncome = tx.type === 'DEPOSIT' || tx.type === 'INITIAL'
                 const within24h = new Date().getTime() - new Date(tx.created_at).getTime() < 24 * 60 * 60 * 1000
                 return (
-                  <div key={tx.id} className="px-5 py-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+                  <div key={tx.id} className="p-4 sm:px-5 sm:py-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className={`w-10 h-10 rounded-2xl flex-shrink-0 flex items-center justify-center ${
                         isIncome ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'
@@ -432,7 +470,7 @@ export function Accounts() {
                           : <ArrowDownRight className="w-5 h-5" />}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm truncate">{tx.remarks}</p>
+                        <p className="font-bold text-gray-900 text-sm truncate">{tx.remarks}</p>
                         <div className="text-xs text-gray-400 flex items-center gap-1.5 mt-0.5">
                           <span>{format(new Date(tx.created_at), 'MMM d, h:mm a')}</span>
                           {tx.store_accounts?.name && (
@@ -444,8 +482,8 @@ export function Accounts() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-                      <span className={`text-base font-bold tabular-nums ${isIncome ? 'text-green-600' : 'text-red-500'}`}>
+                    <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 ml-3">
+                      <span className={`text-sm sm:text-base font-extrabold tabular-nums ${isIncome ? 'text-green-600' : 'text-red-500'}`}>
                         {isIncome ? '+' : '-'}₹{Number(tx.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </span>
                       {within24h && (
@@ -455,10 +493,10 @@ export function Accounts() {
                               deleteTxMutation.mutate(tx.id)
                             }
                           }}
-                          className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
                           title="Reverse (available within 24h)"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       )}
                     </div>
@@ -470,115 +508,213 @@ export function Accounts() {
         </div>
       )}
 
-      {/* Transaction Modal (Deposit / Withdraw) */}
+      {/* ========================================================
+          MOBILE BOTTOM SHEET: DEPOSIT / WITHDRAWAL
+          Native touch-optimized bottom sheet with quick amounts & presets
+         ======================================================== */}
       {txModal.open && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-xl font-bold text-gray-900">
-                {txModal.type === 'DEPOSIT' ? 'Deposit Funds' : 'Withdraw Funds'}
-              </h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all">
+          {/* Backdrop click to dismiss */}
+          <div
+            className="absolute inset-0"
+            onClick={() => setTxModal({ open: false, type: 'DEPOSIT', account: null })}
+          />
+
+          <div className="relative bg-white rounded-t-[32px] sm:rounded-3xl w-full max-w-md p-5 sm:p-7 shadow-2xl max-h-[92dvh] overflow-y-auto animate-slide-up z-10 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
+            {/* Top mobile drawer grab handle */}
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 sm:hidden" />
+
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2">
+                <div className={`p-2 rounded-xl ${txModal.type === 'DEPOSIT' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                  {txModal.type === 'DEPOSIT' ? <ArrowUpRight className="h-5 w-5" /> : <ArrowDownRight className="h-5 w-5" />}
+                </div>
+                <div>
+                  <h2 className="text-xl font-extrabold text-gray-900">
+                    {txModal.type === 'DEPOSIT' ? 'Deposit Funds' : 'Withdraw Funds'}
+                  </h2>
+                  <p className="text-xs text-gray-500">
+                    Target Account: <span className="font-bold text-[#8b5a2b]">{txModal.account?.name}</span>
+                  </p>
+                </div>
+              </div>
               <button
+                type="button"
                 onClick={() => setTxModal({ open: false, type: 'DEPOSIT', account: null })}
-                className="p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                className="p-2.5 rounded-full hover:bg-gray-100 active:scale-95 transition-all text-gray-400"
               >
-                <X className="h-4 w-4 text-gray-500" />
+                <X className="h-5 w-5" />
               </button>
             </div>
-            <p className="text-xs text-gray-500 mb-6">
-              Account: <span className="font-bold text-gray-800">{txModal.account?.name}</span>
-            </p>
 
-            <div className="space-y-4 mb-6">
+            <div className="space-y-4 my-5">
+              {/* Amount input with quick presets */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Amount (₹)</label>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="text-xl font-bold rounded-xl"
-                  autoFocus
-                />
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                    Amount (₹) *
+                  </label>
+                  {amount && (
+                    <button
+                      type="button"
+                      onClick={() => setAmount('')}
+                      className="text-xs text-gray-400 hover:text-gray-600"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                <div className="relative flex items-center">
+                  <span className="absolute left-4 text-xl font-extrabold text-gray-400">₹</span>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="text-2xl font-extrabold rounded-2xl pl-9 h-14 bg-gray-50 border-gray-200 focus:bg-white"
+                    autoFocus
+                  />
+                </div>
+
+                {/* Quick Amount Chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar mt-2.5 pt-1">
+                  {QUICK_AMOUNTS.map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => handleAddPresetAmount(val)}
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-[#f4e8d8] hover:text-[#8b5a2b] active:scale-95 text-gray-700 text-xs font-bold rounded-xl whitespace-nowrap transition-all"
+                    >
+                      +{val >= 1000 ? `${val / 1000}k` : val}
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* Remarks with quick suggestions */}
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Remarks</label>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                  Reason / Remarks *
+                </label>
                 <Input
                   type="text"
-                  placeholder={txModal.type === 'DEPOSIT' ? 'e.g., Cash addition' : 'e.g., Milk vendor payment'}
+                  placeholder={txModal.type === 'DEPOSIT' ? 'e.g. Cash Sales, Direct deposit' : 'e.g. Milk & dairy, Packaging'}
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
-                  className="rounded-xl"
+                  className="rounded-2xl h-12 text-sm"
                 />
+
+                {/* Quick Remark Chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar mt-2 pt-1">
+                  {(txModal.type === 'DEPOSIT' ? DEPOSIT_REMARK_PRESETS : WITHDRAW_REMARK_PRESETS).map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setRemarks(preset)}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-xl whitespace-nowrap border transition-all active:scale-95 ${
+                        remarks === preset
+                          ? 'bg-[#8b5a2b] text-white border-[#8b5a2b]'
+                          : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="flex gap-3">
+            {/* Actions */}
+            <div className="flex gap-3 pt-2">
               <Button
+                type="button"
                 variant="outline"
-                className="flex-1 rounded-2xl"
+                className="flex-1 rounded-2xl h-13 font-bold text-sm"
                 onClick={() => setTxModal({ open: false, type: 'DEPOSIT', account: null })}
                 disabled={processTxMutation.isPending}
               >
                 Cancel
               </Button>
               <Button
-                className={`flex-1 rounded-2xl text-white font-semibold ${
-                  txModal.type === 'DEPOSIT' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-500 hover:bg-red-600'
+                type="button"
+                className={`flex-1 rounded-2xl h-13 text-white font-extrabold text-sm shadow-md active:scale-98 transition-all ${
+                  txModal.type === 'DEPOSIT'
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-red-600 hover:bg-red-700'
                 }`}
                 onClick={() => processTxMutation.mutate()}
                 disabled={processTxMutation.isPending}
               >
-                {processTxMutation.isPending ? 'Processing...' : 'Confirm'}
+                {processTxMutation.isPending ? 'Saving...' : `Confirm ${txModal.type === 'DEPOSIT' ? 'Deposit' : 'Withdrawal'}`}
               </Button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Add Account Modal */}
+      {/* ========================================================
+          MOBILE BOTTOM SHEET: ADD NEW ACCOUNT
+         ======================================================== */}
       {addModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-sm p-6 shadow-2xl">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">New Account</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 transition-all">
+          {/* Backdrop click to dismiss */}
+          <div className="absolute inset-0" onClick={() => setAddModal(false)} />
+
+          <div className="relative bg-white rounded-t-[32px] sm:rounded-3xl w-full max-w-md p-5 sm:p-7 shadow-2xl max-h-[92dvh] overflow-y-auto animate-slide-up z-10 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
+            <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto mb-4 sm:hidden" />
+
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-extrabold text-gray-900">Add Split Account</h2>
+                <p className="text-xs text-gray-500">Create a register, bank, or UPI account</p>
+              </div>
               <button
+                type="button"
                 onClick={() => setAddModal(false)}
-                className="p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                className="p-2.5 rounded-full hover:bg-gray-100 active:scale-95 transition-all text-gray-400"
               >
-                <X className="h-4 w-4 text-gray-500" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="space-y-4 mb-6">
+            <div className="space-y-4 my-4">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Account Name</label>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                  Account Name *
+                </label>
                 <Input
-                  placeholder="e.g., Main Register, Petty Cash, HDFC"
+                  placeholder="e.g. Main Register, Petty Cash, HDFC Bank"
                   value={newAccName}
                   onChange={(e) => setNewAccName(e.target.value)}
-                  className="rounded-xl"
+                  className="rounded-2xl h-12 text-sm"
                   autoFocus
                 />
               </div>
+
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Type</label>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                  Account Type *
+                </label>
                 <div className="grid grid-cols-4 gap-2">
                   {(['CASH', 'BANK', 'UPI', 'OTHER'] as const).map((type) => {
                     const m = ACCOUNT_TYPE_META[type]
                     const Icon = m.icon
+                    const isSelected = newAccType === type
                     return (
                       <button
                         key={type}
+                        type="button"
                         onClick={() => setNewAccType(type)}
-                        className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all ${
-                          newAccType === type
-                            ? 'border-[#8b5a2b] bg-[#f4e8d8]'
-                            : 'border-gray-100 hover:border-gray-200'
+                        className={`flex flex-col items-center justify-center gap-1 py-3 px-2 rounded-2xl border-2 transition-all active:scale-95 ${
+                          isSelected
+                            ? 'border-[#8b5a2b] bg-[#f4e8d8] shadow-sm'
+                            : 'border-gray-100 bg-gray-50 hover:border-gray-200'
                         }`}
                       >
-                        <Icon className={`h-5 w-5 ${newAccType === type ? 'text-[#8b5a2b]' : m.color}`} />
-                        <span className={`text-[10px] font-bold ${newAccType === type ? 'text-[#8b5a2b]' : 'text-gray-500'}`}>
+                        <Icon className={`h-5 w-5 ${isSelected ? 'text-[#8b5a2b]' : m.color}`} />
+                        <span className={`text-[11px] font-extrabold ${isSelected ? 'text-[#8b5a2b]' : 'text-gray-600'}`}>
                           {type}
                         </span>
                       </button>
@@ -586,29 +722,38 @@ export function Accounts() {
                   })}
                 </div>
               </div>
+
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-widest text-gray-400 mb-2">Opening Balance (₹)</label>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  value={newAccOpening}
-                  onChange={(e) => setNewAccOpening(e.target.value)}
-                  className="rounded-xl"
-                />
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                  Opening Balance (₹)
+                </label>
+                <div className="relative flex items-center">
+                  <span className="absolute left-4 text-lg font-bold text-gray-400">₹</span>
+                  <Input
+                    type="number"
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    value={newAccOpening}
+                    onChange={(e) => setNewAccOpening(e.target.value)}
+                    className="rounded-2xl pl-9 h-12 text-base font-bold"
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-3 pt-3">
               <Button
+                type="button"
                 variant="outline"
-                className="flex-1 rounded-2xl"
+                className="flex-1 rounded-2xl h-13 font-bold text-sm"
                 onClick={() => setAddModal(false)}
                 disabled={addAccountMutation.isPending}
               >
                 Cancel
               </Button>
               <Button
-                className="flex-1 rounded-2xl bg-[#8b5a2b] hover:bg-[#6b4423] text-white font-semibold"
+                type="button"
+                className="flex-1 rounded-2xl h-13 bg-[#8b5a2b] hover:bg-[#6b4423] text-white font-extrabold text-sm shadow-md active:scale-98 transition-all"
                 onClick={() => addAccountMutation.mutate()}
                 disabled={addAccountMutation.isPending}
               >

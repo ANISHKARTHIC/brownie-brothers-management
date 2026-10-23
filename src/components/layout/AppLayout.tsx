@@ -67,7 +67,7 @@ export function AppLayout() {
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-gray-200/80 bg-white/95 backdrop-blur-md md:hidden items-center justify-around px-2 pt-2 pb-[calc(0.6rem+env(safe-area-inset-bottom))] min-h-[calc(4.5rem+env(safe-area-inset-bottom))] shadow-lg">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 flex border-t border-gray-200/80 bg-white/95 backdrop-blur-md md:hidden items-center justify-around px-2 pt-2 pb-[calc(0.6rem+env(safe-area-inset-bottom))] min-h-[calc(4.5rem+env(safe-area-inset-bottom))] shadow-lg">
         {navItems.map((item) => (
           <NavLink
             key={item.name}

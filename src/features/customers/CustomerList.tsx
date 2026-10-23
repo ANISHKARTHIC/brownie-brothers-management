@@ -141,10 +141,19 @@ export function CustomerList() {
         <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
         <Input
           placeholder="Search customer by name..."
-          className="pl-11 rounded-2xl bg-white border-gray-100 shadow-sm h-12 text-sm"
+          className="pl-11 pr-10 rounded-2xl bg-white border-gray-100 shadow-sm h-12 text-sm"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
+        {searchTerm && (
+          <button
+            type="button"
+            onClick={() => setSearchTerm('')}
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 rounded-full"
+          >
+            <span className="text-xs font-bold">✕</span>
+          </button>
+        )}
       </div>
 
       {/* Customer List */}
@@ -168,7 +177,7 @@ export function CustomerList() {
           {!debouncedSearch && (
             <Button
               onClick={() => navigate('/customers/new')}
-              className="bg-[#8b5a2b] hover:bg-[#6b4423] text-white rounded-2xl"
+              className="bg-[#8b5a2b] hover:bg-[#6b4423] text-white rounded-2xl py-3 px-6 text-sm font-bold active:scale-95 transition-transform"
             >
               <Plus className="h-4 w-4 mr-1.5" />
               Add Customer
@@ -181,7 +190,7 @@ export function CustomerList() {
             <div
               key={customer.id}
               onClick={() => navigate(`/customers/${customer.id}`)}
-              className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between hover:shadow-md hover:border-gray-200 transition-all cursor-pointer group"
+              className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between hover:shadow-md hover:border-gray-200 active:scale-[0.99] transition-all cursor-pointer group"
             >
               <div className="flex items-center gap-3.5 min-w-0">
                 <div className="h-11 w-11 rounded-2xl bg-[#f4e8d8] flex items-center justify-center text-[#8b5a2b] font-bold text-base flex-shrink-0 group-hover:bg-[#ecd2ae] transition-colors">

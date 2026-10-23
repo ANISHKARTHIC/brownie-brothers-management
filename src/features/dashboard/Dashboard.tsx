@@ -118,7 +118,7 @@ export function Dashboard() {
         {/* Outstanding Card */}
         <div
           onClick={() => navigate('/customers')}
-          className="cursor-pointer bg-gradient-to-br from-[#8b5a2b] to-[#6b4423] rounded-3xl p-6 text-white shadow-md hover:shadow-lg transition-all duration-200 relative overflow-hidden"
+          className="cursor-pointer bg-gradient-to-br from-[#8b5a2b] to-[#6b4423] rounded-3xl p-5 sm:p-6 text-white shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200 relative overflow-hidden"
         >
           <div className="flex items-start justify-between">
             <div>
@@ -150,7 +150,7 @@ export function Dashboard() {
         {/* Total Customers Card */}
         <div
           onClick={() => navigate('/customers')}
-          className="cursor-pointer bg-white rounded-3xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col justify-between"
+          className="cursor-pointer bg-white rounded-3xl p-5 sm:p-6 border border-gray-100 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 flex flex-col justify-between"
         >
           <div className="flex items-start justify-between">
             <div>
@@ -179,12 +179,12 @@ export function Dashboard() {
         <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3 px-1">
           Quick Actions
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
           {quickLinks.map((link) => (
             <button
               key={link.label}
               onClick={() => navigate(link.path)}
-              className="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all text-left"
+              className="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 active:scale-95 transition-all text-left"
             >
               <div className={`p-2.5 rounded-xl ${link.bg} flex-shrink-0`}>
                 <link.icon className={`h-5 w-5 ${link.color}`} />
