@@ -64,7 +64,16 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Toaster position="top-center" />
+      <Toaster
+        position="top-center"
+        containerStyle={{ top: 'calc(env(safe-area-inset-top) + 12px)' }}
+        toastOptions={{
+          duration: 3000,
+          style: { background: '#3d2b20', color: '#fffdfa', borderRadius: '16px', padding: '12px 16px', fontSize: '14px', fontWeight: 500, boxShadow: '0 10px 30px rgba(61,43,32,0.3)', maxWidth: '92vw' },
+          success: { iconTheme: { primary: '#8fbf86', secondary: '#3d2b20' } },
+          error: { iconTheme: { primary: '#f0a39b', secondary: '#3d2b20' } },
+        }}
+      />
       <AuthProvider>
         <BrowserRouter>
           <Routes>

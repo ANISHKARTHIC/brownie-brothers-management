@@ -104,61 +104,92 @@ export function StockTab() {
   )
 }
 
+type Mode = 'add' | 'used' | 'set'
+const MODES: { key: Mode; label: string }[] = [
+  { key: 'add', label: 'Add' },
+  { key: 'used', label: 'Used / wasted' },
+  { key: 'set', label: 'Set count' },
+]
+
 function ItemSheet({ item, onClose }: { item: StockItem | null; onClose: () => void }) {
   const adjust = useAdjustStock()
   const save = useSaveItem()
   const del = useDeleteItem()
+  const [mode, setMode] = useState<Mode>('add')
   const [qty, setQty] = useState('')
   const [min, setMin] = useState('')
-  const [cost, setCost] = useState('')
+  const [more, setMore] = useState(false)
   const [lastId, setLastId] = useState<string | null>(null)
 
-  if (item && item.id !== lastId) { setLastId(item.id); setQty(''); setMin(String(item.min_stock)); setCost('') }
+  if (item && item.id !== lastId) { setLastId(item.id); setMode('add'); setQty(''); setMin(String(item.min_stock)); setMore(false) }
   if (!item) return null
 
   const n = parseFloat(qty)
-  const valid = n > 0
+  const valid = n >= 0 && qty !== '' && (mode === 'set' || n > 0)
+  const cur = Number(item.current_stock)
+  const tooMuch = mode === 'used' && n > cur
   const step = stepFor(item.unit)
-  const done = () => { setQty(''); onClose() }
+  const after = mode === 'add' ? cur + n : mode === 'used' ? cur - n : n
+  const label = mode === 'add' ? `Add ${valid ? fmt(n) + ' ' + item.unit : 'stock'}`
+    : mode === 'used' ? `Remove ${valid ? fmt(n) + ' ' + item.unit : 'stock'}` : `Set to ${valid ? fmt(n) + ' ' + item.unit : '…'}`
+
+  const submit = () => {
+    const base = { id: item.id }
+    const opts = { onSuccess: onClose }
+    if (mode === 'add') adjust.mutate({ ...base, delta: n, type: 'IN', notes: 'Restock', success: `Added ${fmt(n)} ${item.unit} to ${item.name}` }, opts)
+    else if (mode === 'used') adjust.mutate({ ...base, delta: -n, type: 'WASTAGE', notes: 'Used / wasted', success: `Removed ${fmt(n)} ${item.unit} from ${item.name}` }, opts)
+    else adjust.mutate({ ...base, delta: n - cur, type: 'ADJUSTMENT', notes: 'Stock count', success: `${item.name} set to ${fmt(n)} ${item.unit}` }, opts)
+  }
 
   return (
     <Sheet open onClose={onClose} title={item.name}>
-      <p className="text-sm text-gray-500">In stock: <b className="text-[#3f3027]">{fmt(item.current_stock)} {item.unit}</b></p>
-      <Input label={`Quantity (${item.unit})`} type="number" inputMode="decimal" min="0" step="any" autoFocus
-        value={qty} onChange={(e) => setQty(e.target.value)} placeholder={String(step)} />
-      <div className="flex gap-2 flex-wrap">
-        {[1, 2, 5, 10].map((m) => (
-          <button key={m} onClick={() => setQty(String(step * m))}
-            className="px-3 py-1.5 rounded-full bg-[#faf4ee] text-[#8b5a2b] text-xs font-semibold">{fmt(step * m)}</button>
-        ))}
-      </div>
-      <Input label="Cost paid (optional, ₹)" type="number" inputMode="decimal" value={cost} onChange={(e) => setCost(e.target.value)} />
-      <Button className="w-full" disabled={!valid || adjust.isPending}
-        onClick={() => adjust.mutate({ id: item.id, delta: n, type: 'IN', notes: cost ? `Restock · ₹${cost}` : 'Restock', success: `Added ${n} ${item.unit}` }, { onSuccess: done })}>
-        Add stock
-      </Button>
-      <div className="grid grid-cols-2 gap-2">
-        <Button variant="outline" disabled={!valid || n > Number(item.current_stock) || adjust.isPending}
-          onClick={() => adjust.mutate({ id: item.id, delta: -n, type: 'WASTAGE', notes: 'Wastage', success: `Logged ${n} ${item.unit} wastage` }, { onSuccess: done })}>
-          Log wastage
-        </Button>
-        <Button variant="outline" disabled={!valid || adjust.isPending}
-          onClick={() => adjust.mutate({ id: item.id, delta: n - Number(item.current_stock), type: 'ADJUSTMENT', notes: 'Set via count', success: 'Stock count set' }, { onSuccess: done })}>
-          Set count to {valid ? fmt(n) : '…'}
-        </Button>
+      <div className="flex items-baseline justify-between -mt-1">
+        <p className="text-sm text-[#84766c]">In stock</p>
+        <p className="font-display text-2xl font-bold text-[#3d2b20]">{fmt(cur)} <span className="text-sm font-medium text-[#84766c]">{item.unit}</span></p>
       </div>
 
-      <div className="border-t border-gray-100 pt-4 space-y-3">
-        <div className="flex gap-2 items-end">
-          <Input label={`Low-stock alert at (${item.unit})`} type="number" inputMode="decimal" value={min} onChange={(e) => setMin(e.target.value)} />
-          <Button variant="secondary" disabled={min === '' || save.isPending}
-            onClick={() => save.mutate({ id: item.id, name: item.name, unit: item.unit, min_stock: Number(min) }, { onSuccess: onClose })}>Save</Button>
-        </div>
-        <button className="text-xs text-red-600 font-semibold flex items-center gap-1"
-          onClick={() => { if (confirm(`Delete ${item.name}? Its history and recipe lines are removed too.`)) del.mutate(item.id, { onSuccess: onClose }) }}>
-          <Trash2 className="h-3.5 w-3.5" />Delete ingredient
-        </button>
+      <div className="grid grid-cols-3 gap-1 p-1 bg-[#efe6dc] rounded-xl">
+        {MODES.map((m) => (
+          <button key={m.key} onClick={() => setMode(m.key)}
+            className={`h-10 rounded-lg text-[13px] font-semibold transition-all ${mode === m.key ? 'bg-white text-[#6b4423] shadow-sm' : 'text-[#84766c]'}`}>{m.label}</button>
+        ))}
       </div>
+
+      <div className="flex items-center gap-2 rounded-2xl border border-[#e4d8cc] px-4 focus-within:ring-2 focus-within:ring-[#8b5a2b]">
+        <input type="number" inputMode="decimal" min="0" step="any" autoFocus value={qty} onChange={(e) => setQty(e.target.value)}
+          placeholder="0" aria-label={`Quantity in ${item.unit}`}
+          className="no-spin h-16 flex-1 min-w-0 bg-transparent font-display text-3xl font-bold text-[#3d2b20] outline-none" />
+        <span className="text-[#84766c] font-medium">{item.unit}</span>
+      </div>
+      {mode !== 'set' && (
+        <div className="flex gap-2 flex-wrap">
+          {[1, 2, 5, 10].map((m) => (
+            <button key={m} onClick={() => setQty(String(step * m))}
+              className="press px-4 h-9 rounded-full bg-[#faf4ee] text-[#8b5a2b] text-sm font-semibold">{fmt(step * m)}</button>
+          ))}
+        </div>
+      )}
+      {valid && !tooMuch && <p className="text-sm text-[#84766c]">New total: <b className="text-[#3d2b20]">{fmt(after)} {item.unit}</b></p>}
+      {tooMuch && <p className="text-sm text-[#b4382f]">You only have {fmt(cur)} {item.unit}.</p>}
+
+      <Button className="w-full h-12 text-base" disabled={!valid || tooMuch || adjust.isPending} onClick={submit}>{label}</Button>
+
+      <button onClick={() => setMore(!more)} className="w-full text-sm font-semibold text-[#84766c] pt-1">
+        {more ? 'Hide settings' : 'Settings'}
+      </button>
+      {more && (
+        <div className="space-y-3 pt-1">
+          <div className="flex gap-2 items-end">
+            <Input label={`Low-stock alert below (${item.unit})`} type="number" inputMode="decimal" value={min} onChange={(e) => setMin(e.target.value)} />
+            <Button variant="secondary" disabled={min === '' || save.isPending}
+              onClick={() => save.mutate({ id: item.id, name: item.name, unit: item.unit, min_stock: Number(min) }, { onSuccess: onClose })}>Save</Button>
+          </div>
+          <button className="text-sm text-[#b4382f] font-semibold flex items-center gap-1.5"
+            onClick={() => { if (confirm(`Delete ${item.name}? Its history and recipe lines are removed too.`)) del.mutate(item.id, { onSuccess: onClose }) }}>
+            <Trash2 className="h-4 w-4" />Delete ingredient
+          </button>
+        </div>
+      )}
     </Sheet>
   )
 }

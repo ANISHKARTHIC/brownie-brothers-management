@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Minus, Plus, Pencil, Trash2, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { Minus, Plus, Pencil, Undo2, Trash2, CheckCircle2, AlertTriangle } from 'lucide-react'
 import { Sheet } from '@/components/ui/Sheet'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -20,18 +20,30 @@ export function RecipesTab() {
   if (error) return <SetupNotice error={error} />
   if (isLoading) return <Spinner />
 
+  // Last "use" per recipe is remembered so a mistaken tap can be reversed any time
+  const [last, setLast] = useState<Record<string, { n: number; at: number }>>(() => {
+    try { return JSON.parse(localStorage.getItem('stock_last_use') || '{}') } catch { return {} }
+  })
+  const saveLast = (v: typeof last) => { setLast(v); try { localStorage.setItem('stock_last_use', JSON.stringify(v)) } catch { /* ignore */ } }
+
   const makeOne = (r: Recipe) =>
     quick.mutate({ id: r.id, batches: 1 }, {
-      onSuccess: () => {
-        toast.dismiss()
-        toast((t) => (
-          <span className="flex items-center gap-3 text-sm">
-            Used 1 {r.yield_label} of {r.name}
-            <button className="font-bold text-[#8b5a2b]" onClick={async () => { toast.dismiss(t.id); await undoRecipe(r, 1); refresh(); toast.success('Undone') }}>Undo</button>
-          </span>
-        ), { duration: 6000 })
-      },
+      onSuccess: () => saveLast({ ...last, [r.id]: { n: (last[r.id]?.n ?? 0) + 1, at: Date.now() } }),
     })
+
+  const undo = async (r: Recipe) => {
+    const u = last[r.id]
+    if (!u) return
+    try {
+      await undoRecipe(r, 1)
+      const n = u.n - 1
+      const next = { ...last }
+      if (n > 0) next[r.id] = { n, at: u.at }; else delete next[r.id]
+      saveLast(next)
+      refresh()
+      toast.success(`Put back 1 ${r.yield_label} of ingredients`)
+    } catch { toast.error("Couldn't undo — try again") }
+  }
 
   return (
     <div className="space-y-3">
@@ -60,19 +72,25 @@ export function RecipesTab() {
                     className="press h-12 px-3.5 rounded-xl bg-[#f4e8d8] text-[#8b5a2b] font-semibold text-sm disabled:opacity-40">More</button>
                 </div>
               </div>
+              {last[r.id] && (
+                <button onClick={() => undo(r)}
+                  className="press mt-3 w-full h-10 rounded-xl border border-dashed border-[#c9a989] text-[#8b5a2b] text-sm font-semibold flex items-center justify-center gap-1.5">
+                  <Undo2 className="h-4 w-4" />Undo last {r.yield_label}{last[r.id].n > 1 ? ` (${last[r.id].n} to undo)` : ''}
+                </button>
+              )}
             </div>
           )
         })}
       </div>
       <Button variant="outline" className="w-full" onClick={() => setEdit('new')}><Plus className="h-4 w-4 mr-1.5" />Create recipe</Button>
 
-      <UseSheet recipe={use} onClose={() => setUse(null)} onEdit={(r) => { setUse(null); setEdit(r) }} />
+      <UseSheet recipe={use} onUsed={(r, n) => saveLast({ ...last, [r.id]: { n: (last[r.id]?.n ?? 0) + n, at: Date.now() } })} onClose={() => setUse(null)} onEdit={(r) => { setUse(null); setEdit(r) }} />
       <EditSheet recipe={edit} onClose={() => setEdit(null)} />
     </div>
   )
 }
 
-function UseSheet({ recipe, onClose, onEdit }: { recipe: Recipe | null; onClose: () => void; onEdit: (r: Recipe) => void }) {
+function UseSheet({ recipe, onClose, onEdit, onUsed }: { recipe: Recipe | null; onClose: () => void; onEdit: (r: Recipe) => void; onUsed: (r: Recipe, n: number) => void }) {
   const { data: items = [] } = useStockItems()
   const use = useUseRecipe()
   const [n, setN] = useState(1)
@@ -111,7 +129,7 @@ function UseSheet({ recipe, onClose, onEdit }: { recipe: Recipe | null; onClose:
         <p className="flex items-center gap-2 text-xs text-red-600"><AlertTriangle className="h-4 w-4" />Not enough stock for this amount — restock first.</p>
       )}
       <Button className="w-full gap-2" disabled={!allOk || use.isPending}
-        onClick={() => use.mutate({ id: recipe.id, batches: n }, { onSuccess: onClose })}>
+        onClick={() => use.mutate({ id: recipe.id, batches: n }, { onSuccess: () => { onUsed(recipe, n); onClose() } })}>
         <CheckCircle2 className="h-4 w-4" />Use recipe · deduct stock
       </Button>
       <button onClick={() => onEdit(recipe)} className="w-full text-xs font-semibold text-[#8b5a2b] flex items-center justify-center gap-1"><Pencil className="h-3.5 w-3.5" />Edit recipe</button>

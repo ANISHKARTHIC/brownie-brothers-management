@@ -1,6 +1,7 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom'
 import { Home, Landmark, Boxes, Users, MoreHorizontal } from 'lucide-react'
 import { useEffect, useRef } from 'react'
+import { Notifications } from '@/components/layout/Notifications'
 
 export function AppLayout() {
   const location = useLocation()
@@ -65,6 +66,15 @@ export function AppLayout() {
         ref={mainRef}
         className="flex-1 min-h-0 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-10 pt-[env(safe-area-inset-top)]"
       >
+        {/* Mobile top bar */}
+        <div className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 h-14 bg-[#f8f5f1]/95 backdrop-blur">
+          <span className="font-display text-lg font-bold text-[#6b4423]">Brownie Brothers</span>
+          <Notifications />
+        </div>
+        {/* Desktop corner */}
+        <div className="hidden md:flex sticky top-2 z-30 h-0 justify-end px-8 pointer-events-none">
+          <div className="pointer-events-auto mt-1"><Notifications /></div>
+        </div>
         <Outlet />
       </main>
 
