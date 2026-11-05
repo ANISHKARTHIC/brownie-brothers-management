@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 export function Sheet({ open, onClose, title, children }: {
@@ -15,7 +16,7 @@ export function Sheet({ open, onClose, title, children }: {
   }, [open, onClose])
 
   if (!open) return null
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 bg-[#2b1c12]/45 backdrop-blur-[2px] z-[100] flex items-end sm:items-center justify-center"
       onClick={onClose}
@@ -35,6 +36,7 @@ export function Sheet({ open, onClose, title, children }: {
         </div></div>
         <div className="px-5 pb-6 space-y-4">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

@@ -17,14 +17,14 @@ export function RecipesTab() {
   const [use, setUse] = useState<Recipe | null>(null)
   const [edit, setEdit] = useState<Recipe | 'new' | null>(null)
 
-  if (error) return <SetupNotice error={error} />
-  if (isLoading) return <Spinner />
-
   // Last "use" per recipe is remembered so a mistaken tap can be reversed any time
   const [last, setLast] = useState<Record<string, { n: number; at: number }>>(() => {
     try { return JSON.parse(localStorage.getItem('stock_last_use') || '{}') } catch { return {} }
   })
   const saveLast = (v: typeof last) => { setLast(v); try { localStorage.setItem('stock_last_use', JSON.stringify(v)) } catch { /* ignore */ } }
+
+  if (error) return <SetupNotice error={error} />
+  if (isLoading) return <Spinner />
 
   const makeOne = (r: Recipe) =>
     quick.mutate({ id: r.id, batches: 1 }, {
@@ -47,6 +47,12 @@ export function RecipesTab() {
 
   return (
     <div className="space-y-3">
+      {recipes.length === 0 && (
+        <div className="text-center py-10 text-[#84766c]">
+          <p className="font-semibold text-[#3d2b20]">No recipes yet</p>
+          <p className="text-sm mt-1">Add your ingredients in Stock first, then create a recipe to see how many trays you can make.</p>
+        </div>
+      )}
       <div className="space-y-3">
         {recipes.map((r) => {
           const { max, limiting } = analyseRecipe(r, items)
