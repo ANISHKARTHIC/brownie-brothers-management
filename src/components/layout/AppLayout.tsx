@@ -64,10 +64,10 @@ export function AppLayout() {
       {/* Main Content Area */}
       <main
         ref={mainRef}
-        className="flex-1 min-h-0 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-10 pt-[env(safe-area-inset-top)]"
+        className="flex-1 min-h-0 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-10"
       >
         {/* Mobile top bar */}
-        <div className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 h-14 bg-[#f8f5f1]/95 backdrop-blur">
+        <div className="md:hidden sticky top-0 z-30 flex items-end justify-between px-4 pb-1.5 pt-[env(safe-area-inset-top)] h-[calc(3.5rem+env(safe-area-inset-top))] bg-[#f8f5f1]/95 backdrop-blur">
           <span className="font-display text-lg font-bold text-[#6b4423]">Brownie Brothers</span>
           <Notifications />
         </div>
