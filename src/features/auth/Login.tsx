@@ -104,14 +104,16 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafa] flex flex-col justify-center p-6">
-      <div className="w-full max-w-md mx-auto space-y-8">
+    <div className="min-h-screen bg-[#f8f5f1] flex flex-col justify-center p-5 sm:p-8 relative overflow-hidden">
+      <div className="absolute -top-32 -right-24 h-80 w-80 rounded-full bg-[#ead7c2]/45 blur-3xl" />
+      <div className="absolute -bottom-40 -left-24 h-96 w-96 rounded-full bg-[#f1dfcf]/60 blur-3xl" />
+      <div className="relative w-full max-w-md mx-auto space-y-8 rounded-[2rem] border border-[#eee3d9] bg-[#fffdfa]/90 p-6 sm:p-10 shadow-[0_20px_60px_rgba(74,45,24,0.09)] backdrop-blur-sm">
         <div className="text-center space-y-2">
           <div className="flex justify-center mb-4">
             <img src="/logo.png" alt="Logo" className="h-16 w-auto object-contain mx-auto" onError={(e) => { e.currentTarget.style.display = "none"; if(e.currentTarget.nextElementSibling) (e.currentTarget.nextElementSibling as HTMLElement).style.display = "block"; }} />
             <Cookie className="h-12 w-12 text-[#8b5a2b] hidden" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+          <h1 className="font-[var(--font-display)] text-3xl font-bold tracking-tight text-[#3d2b20]">
             Brownie Brothers
           </h1>
           <p className="text-gray-500">

@@ -22,19 +22,20 @@ export function AppLayout() {
   ]
 
   return (
-    <div className="flex h-screen w-full flex-col bg-[#fafaf9] md:flex-row overflow-hidden">
+    <div className="flex h-screen w-full flex-col bg-[#f8f5f1] md:flex-row overflow-hidden">
       {/* Desktop Sidebar (hidden on mobile) */}
-      <aside className="hidden w-64 flex-col border-r border-gray-100 bg-white md:flex shadow-sm flex-shrink-0">
-        <div className="flex h-16 items-center px-6 text-xl font-bold text-[#8b5a2b] gap-2.5">
+      <aside className="hidden w-72 flex-col border-r border-[#eadfd4] bg-[#fffdfa] md:flex shadow-[4px_0_24px_rgba(74,45,24,0.03)] flex-shrink-0">
+        <div className="flex h-20 items-center px-7 text-xl font-bold text-[#6b4423] gap-3">
           <img
             src="/logo.png"
             alt="Logo"
-            className="h-8 w-8 object-contain rounded-lg"
+            className="h-9 w-9 object-contain rounded-xl"
             onError={(e) => { e.currentTarget.style.display = 'none' }}
           />
           Brownie Brothers
         </div>
         <nav className="flex-1 space-y-1 p-4">
+          <p className="px-4 pb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#b8a99d]">Workspace</p>
           {navItems.map((item) => (
             <NavLink
               key={item.name}
@@ -43,8 +44,8 @@ export function AppLayout() {
               className={({ isActive }) =>
                 `flex items-center space-x-3 rounded-2xl px-4 py-3 text-sm font-semibold transition-all duration-200 ${
                   isActive
-                    ? 'bg-[#f4e8d8] text-[#8b5a2b] shadow-sm'
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-[#f4e8d8] text-[#6b4423] shadow-[inset_3px_0_0_#8b5a2b]'
+                    : 'text-[#84766c] hover:bg-[#faf4ee] hover:text-[#3f3027]'
                 }`
               }
             >
@@ -53,21 +54,21 @@ export function AppLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="p-4 border-t border-gray-100">
-          <p className="text-xs text-gray-400 font-medium px-4">Brownie Brothers © 2026</p>
+        <div className="p-5 border-t border-[#f0e7df]">
+          <p className="text-xs text-[#b8a99d] font-medium px-3">Brownie Brothers · 2026</p>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <main
         ref={mainRef}
-        className="flex-1 min-h-0 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-8 pt-[env(safe-area-inset-top)]"
+        className="flex-1 min-h-0 overflow-y-auto pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-10 pt-[env(safe-area-inset-top)]"
       >
         <Outlet />
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 flex border-t border-gray-200/80 bg-white/95 backdrop-blur-md md:hidden items-center justify-around px-2 pt-2 pb-[calc(0.6rem+env(safe-area-inset-bottom))] min-h-[calc(4.5rem+env(safe-area-inset-bottom))] shadow-lg">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 flex border-t border-[#eadfd4] bg-[#fffdfa]/95 backdrop-blur-md md:hidden items-center justify-around px-2 pt-2 pb-[calc(0.6rem+env(safe-area-inset-bottom))] min-h-[calc(4.5rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(74,45,24,0.08)]">
         {navItems.map((item) => (
           <NavLink
             key={item.name}

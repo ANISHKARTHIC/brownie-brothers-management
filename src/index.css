@@ -5,18 +5,51 @@
   --color-primary-dark: #6b4423;
   --color-secondary: #f4e8d8;
   
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+}
+
+:root {
+  color: #2b211b;
+  background: #f8f5f1;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+html {
+  background: #f8f5f1;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #fafaf9;
-  color: #1f2937;
+  background-color: #f8f5f1;
+  color: #2b211b;
+  min-width: 320px;
   /* iOS & Android Native App Feel */
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   touch-action: manipulation;
+}
+
+button, a, input, select, textarea {
+  outline-color: #8b5a2b;
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid rgb(139 90 43 / 25%);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #ead7c2;
+  color: #4a2d18;
+}
+
+/* Keep the content column comfortable on wide screens. */
+.page-shell {
+  width: min(100%, 1120px);
+  margin-inline: auto;
 }
 
 /* Hide scrollbar for clean horizontal tabs */

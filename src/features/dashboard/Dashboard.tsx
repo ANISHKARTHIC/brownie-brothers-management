@@ -91,21 +91,21 @@ export function Dashboard() {
   ]
 
   return (
-    <div className="p-4 md:p-8 max-w-5xl mx-auto space-y-6">
+    <div className="page-shell p-4 md:p-10 space-y-8">
       {/* Header Greeting */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">
+          <p className="text-[#a58f7f] text-[11px] font-bold uppercase tracking-[0.18em]">
             {format(new Date(), 'EEEE, d MMMM yyyy')}
           </p>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 mt-1">
+          <h1 className="font-[var(--font-display)] text-3xl md:text-4xl font-bold tracking-tight text-[#3d2b20] mt-2">
             {getGreeting()}, {profile?.full_name?.split(' ')[0] || 'Baker'} 👋
           </h1>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate('/customers/new')}
-            className="inline-flex items-center gap-2 bg-[#8b5a2b] hover:bg-[#6b4423] text-white px-4 py-2.5 rounded-2xl text-sm font-semibold shadow-sm transition-all"
+            className="inline-flex items-center gap-2 bg-[#8b5a2b] hover:bg-[#6b4423] text-white px-4 py-3 rounded-2xl text-sm font-semibold shadow-[0_8px_18px_rgba(107,68,35,0.18)] transition-all"
           >
             <Plus className="h-4 w-4" />
             Add Customer
@@ -118,7 +118,7 @@ export function Dashboard() {
         {/* Outstanding Card */}
         <div
           onClick={() => navigate('/customers')}
-          className="cursor-pointer bg-gradient-to-br from-[#8b5a2b] to-[#6b4423] rounded-3xl p-5 sm:p-6 text-white shadow-md hover:shadow-lg active:scale-[0.98] transition-all duration-200 relative overflow-hidden"
+          className="cursor-pointer bg-gradient-to-br from-[#9c6837] via-[#8b5a2b] to-[#6b4423] rounded-[1.75rem] p-5 sm:p-6 text-white shadow-[0_12px_28px_rgba(107,68,35,0.2)] hover:shadow-lg active:scale-[0.98] transition-all duration-200 relative overflow-hidden"
         >
           <div className="flex items-start justify-between">
             <div>
@@ -150,7 +150,7 @@ export function Dashboard() {
         {/* Total Customers Card */}
         <div
           onClick={() => navigate('/customers')}
-          className="cursor-pointer bg-white rounded-3xl p-5 sm:p-6 border border-gray-100 shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200 flex flex-col justify-between"
+          className="cursor-pointer bg-[#fffdfa] rounded-[1.75rem] p-5 sm:p-6 border border-[#eee3d9] shadow-[0_8px_24px_rgba(74,45,24,0.05)] hover:shadow-md active:scale-[0.98] transition-all duration-200 flex flex-col justify-between"
         >
           <div className="flex items-start justify-between">
             <div>

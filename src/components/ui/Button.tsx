@@ -10,9 +10,9 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
     const variants = {
-      primary: 'bg-[#8b5a2b] text-white hover:bg-[#7a4e25] shadow-sm',
+      primary: 'bg-[#8b5a2b] text-white hover:bg-[#6b4423] shadow-[0_6px_14px_rgba(107,68,35,0.18)]',
       secondary: 'bg-[#f4e8d8] text-[#8b5a2b] hover:bg-[#e8d5bc]',
-      outline: 'border-2 border-[#8b5a2b] text-[#8b5a2b] hover:bg-[#f4e8d8]',
+      outline: 'border border-[#c9a989] text-[#8b5a2b] hover:bg-[#f4e8d8]',
       ghost: 'text-[#8b5a2b] hover:bg-black/5',
       danger: 'bg-red-600 text-white hover:bg-red-700 shadow-sm',
     }
@@ -28,7 +28,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          'inline-flex items-center justify-center rounded-xl font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5a2b] disabled:pointer-events-none disabled:opacity-50 active:scale-95',
+          'inline-flex items-center justify-center rounded-xl font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b5a2b] disabled:pointer-events-none disabled:opacity-50 active:scale-95',
           variants[variant],
           sizes[size],
           className
