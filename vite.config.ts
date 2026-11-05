@@ -11,6 +11,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: { importScripts: ['push-sw.js'] },
       includeAssets: ['favicon.png', 'apple-touch-icon.png', 'logo.png'],
       manifest: {
         name: 'Brownie Brothers',

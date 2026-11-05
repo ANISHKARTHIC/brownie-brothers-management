@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Bell, PackageX, Wallet, ChevronRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
+import { getPushState, enablePush, disablePush, type PushState } from '@/lib/push'
 import { Sheet } from '@/components/ui/Sheet'
 import { useStockItems, stockLevel, fmt } from '@/features/stock/api'
 
@@ -23,6 +25,23 @@ export function Notifications() {
   const low = items.filter((i) => ['out', 'low'].includes(stockLevel(i))).sort((a, b) => Number(a.current_stock) - Number(b.current_stock))
   const hasDues = (dues?.customers ?? 0) > 0
   const count = low.length + (hasDues ? 1 : 0)
+  const [push, setPush] = useState<PushState>('off')
+  const [busy, setBusy] = useState(false)
+  useEffect(() => { if (open) getPushState().then(setPush).catch(() => setPush('unsupported')) }, [open])
+  const togglePush = async () => {
+    setBusy(true)
+    try {
+      if (push === 'on') { await disablePush(); toast.success('Phone alerts off') } else { await enablePush(); toast.success('Phone alerts on') }
+      setPush(await getPushState())
+    } catch (e: any) { toast.error(e?.message || "Couldn't change phone alerts") }
+    setBusy(false)
+  }
+  const pushHint: Partial<Record<PushState, string>> = {
+    'needs-install': 'On iPhone, tap Share → Add to Home Screen, then open Brownee from the Home Screen to turn on alerts.',
+    unsupported: "This browser can't show phone alerts. Try Chrome on Android or the installed app on iPhone.",
+    'not-configured': 'Phone alerts are not set up on this site yet.',
+    denied: 'Notifications are blocked. Allow them for Brownee in your phone settings.',
+  }
   const go = (path: string) => { setOpen(false); navigate(path) }
 
   return (
@@ -65,6 +84,16 @@ export function Notifications() {
             )}
           </div>
         )}
+        <div className="border-t border-[#f0e7df] pt-4">
+          {push === 'on' || push === 'off' ? (
+            <button onClick={togglePush} disabled={busy}
+              className={`press w-full h-12 rounded-xl font-semibold text-sm ${push === 'on' ? 'bg-[#faf4ee] text-[#6b4423]' : 'bg-[#8b5a2b] text-white'}`}>
+              {push === 'on' ? 'Phone alerts are on · Turn off' : 'Turn on phone alerts'}
+            </button>
+          ) : (
+            <p className="text-sm text-[#84766c]">{pushHint[push]}</p>
+          )}
+        </div>
       </Sheet>
     </>
   )
