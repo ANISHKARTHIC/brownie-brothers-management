@@ -9,7 +9,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { Dashboard } from '@/features/dashboard/Dashboard'
 import { CustomerList } from '@/features/customers/CustomerList'
 import { ProductList } from '@/features/products/ProductList'
-import { InventoryList } from '@/features/inventory/InventoryList'
+import { Stock } from '@/features/stock/Stock'
 import { Toaster } from 'react-hot-toast'
 import { OrderList } from '@/features/orders/OrderList'
 import { OrderForm } from '@/features/orders/OrderForm'
@@ -85,7 +85,8 @@ export default function App() {
               <Route path="customers/new" element={<CustomerForm />} />
               <Route path="customers/:id" element={<CustomerDetails />} />
               <Route path="products" element={<ProductList />} />
-              <Route path="inventory" element={<InventoryList />} />
+              <Route path="stock" element={<Stock />} />
+              <Route path="inventory" element={<Navigate to="/stock" replace />} />
               <Route path="products/new" element={<ProductForm />} />
               <Route path="products/:id" element={<ProductDetails />} />
               <Route path="more" element={<MoreMenu />} />

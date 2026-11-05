@@ -97,7 +97,7 @@ export function ProductList() {
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="font-bold text-gray-900 truncate text-base sm:text-lg">{product.name}</h3>
                     {!product.is_active && (
-                      <span className="shrink-0 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600 uppercase tracking-wider">
+                      <span className="shrink-0 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
                         Inactive
                       </span>
                     )}

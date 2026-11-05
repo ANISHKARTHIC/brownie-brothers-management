@@ -87,7 +87,7 @@ export function CustomerForm() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+            <label className="block text-xs font-bold text-gray-500 mb-1.5">
               Customer Name *
             </label>
             <Input 
@@ -100,7 +100,7 @@ export function CustomerForm() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+            <label className="block text-xs font-bold text-gray-500 mb-1.5">
               Phone Number
             </label>
             <Input 
@@ -113,7 +113,7 @@ export function CustomerForm() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+            <label className="block text-xs font-bold text-gray-500 mb-1.5">
               Email Address
             </label>
             <Input 
@@ -127,7 +127,7 @@ export function CustomerForm() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+            <label className="block text-xs font-bold text-gray-500 mb-1.5">
               Notes & Preferences
             </label>
             <textarea 

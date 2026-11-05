@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom'
-import { Home, Landmark, Users, MoreHorizontal } from 'lucide-react'
+import { Home, Landmark, Boxes, Users, MoreHorizontal } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 
 export function AppLayout() {
@@ -17,6 +17,7 @@ export function AppLayout() {
   const navItems = [
     { name: 'Home', path: '/', icon: Home },
     { name: 'Accounts', path: '/accounts', icon: Landmark },
+    { name: 'Stock', path: '/stock', icon: Boxes },
     { name: 'Customers', path: '/customers', icon: Users },
     { name: 'More', path: '/more', icon: MoreHorizontal },
   ]
@@ -35,7 +36,7 @@ export function AppLayout() {
           Brownie Brothers
         </div>
         <nav className="flex-1 space-y-1 p-4">
-          <p className="px-4 pb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#b8a99d]">Workspace</p>
+          <p className="px-4 pb-3 text-[10px] font-bold text-[#b8a99d]">Workspace</p>
           {navItems.map((item) => (
             <NavLink
               key={item.name}
@@ -90,7 +91,7 @@ export function AppLayout() {
                   <item.icon className="h-5 w-5" />
                 </div>
                 <span
-                  className={`text-[10px] font-semibold tracking-tight mt-0.5 ${
+                  className={`text-[11px] font-semibold tracking-tight mt-0.5 ${
                     isActive ? 'text-[#8b5a2b]' : 'text-gray-500'
                   }`}
                 >

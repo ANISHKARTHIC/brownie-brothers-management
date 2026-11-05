@@ -98,7 +98,7 @@ function AccountCard({
       </div>
 
       <div>
-        <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-gray-400 mb-1">
+        <p className="text-[10px] sm:text-xs font-semibold text-gray-400 mb-1">
           Available Balance
         </p>
         <p className="text-2xl sm:text-3xl font-extrabold text-gray-900 tabular-nums">
@@ -316,7 +316,7 @@ export function Accounts() {
       <div className="bg-gradient-to-br from-[#8b5a2b] to-[#6b4423] rounded-3xl p-5 sm:p-7 text-white shadow-lg">
         <div className="flex items-start justify-between mb-4 sm:mb-6">
           <div>
-            <p className="text-orange-200/80 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-1">
+            <p className="text-orange-200/80 text-[10px] sm:text-xs font-bold mb-1">
               Total Balance in Accounts
             </p>
             <p className="text-3xl sm:text-4xl font-extrabold tabular-nums">
@@ -551,7 +551,7 @@ export function Accounts() {
               {/* Amount input with quick presets */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                  <label className="text-[11px] font-bold text-gray-500">
                     Amount (₹) *
                   </label>
                   {amount && (
@@ -595,7 +595,7 @@ export function Accounts() {
 
               {/* Remarks with quick suggestions */}
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5">
                   Reason / Remarks *
                 </label>
                 <Input
@@ -681,7 +681,7 @@ export function Accounts() {
 
             <div className="space-y-4 my-4">
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5">
                   Account Name *
                 </label>
                 <Input
@@ -694,7 +694,7 @@ export function Accounts() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5">
                   Account Type *
                 </label>
                 <div className="grid grid-cols-4 gap-2">
@@ -724,7 +724,7 @@ export function Accounts() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5">
                   Opening Balance (₹)
                 </label>
                 <div className="relative flex items-center">

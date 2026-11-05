@@ -124,7 +124,7 @@ export function PinLock({ onUnlock }: PinLockProps) {
           <div className="col-start-3">
             <button
               onClick={handleDelete}
-              className="w-full h-16 rounded-2xl text-gray-500 hover:bg-gray-100 active:bg-gray-200 transition-colors flex items-center justify-center text-sm font-bold uppercase tracking-wider"
+              className="w-full h-16 rounded-2xl text-gray-500 hover:bg-gray-100 active:bg-gray-200 transition-colors flex items-center justify-center text-sm font-bold"
             >
               Del
             </button>

@@ -330,7 +330,7 @@ export function CustomerDetails() {
               }`}
             >
               <p
-                className={`text-[10px] font-bold uppercase tracking-wider ${
+                className={`text-[10px] font-bold ${
                   totalOwed > 0 ? 'text-orange-500' : 'text-green-600'
                 }`}
               >
@@ -389,7 +389,7 @@ export function CustomerDetails() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <p
-                  className={`text-xs font-bold uppercase tracking-widest mb-1 ${
+                  className={`text-xs font-bold mb-1 ${
                     totalOwed > 0 ? 'text-orange-500' : 'text-green-600'
                   }`}
                 >
@@ -423,7 +423,7 @@ export function CustomerDetails() {
           {/* Outstanding Ledger Entries */}
           <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
             <div className="p-4 border-b border-gray-50 flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400">
+              <h3 className="text-xs font-bold text-gray-400">
                 Outstanding Entries & History
               </h3>
               <span className="text-xs text-gray-400 font-medium">
@@ -575,7 +575,7 @@ export function CustomerDetails() {
                 { label: 'Notes / Preferences', field: 'notes', type: 'text', placeholder: 'Preferences or credit info...' },
               ].map(({ label, field, type, placeholder }) => (
                 <div key={field}>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+                  <label className="block text-xs font-bold text-gray-400 mb-1.5">
                     {label}
                   </label>
                   <Input
@@ -601,7 +601,7 @@ export function CustomerDetails() {
                       <Icon className="h-4 w-4 text-gray-400" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{label}</p>
+                      <p className="text-[10px] font-bold text-gray-400">{label}</p>
                       <p className="text-sm text-gray-900 font-semibold mt-0.5">{value}</p>
                     </div>
                   </div>
@@ -688,7 +688,7 @@ export function CustomerDetails() {
             <div className="space-y-4 my-4">
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                  <label className="text-[11px] font-bold text-gray-500">
                     Amount (₹) *
                   </label>
                   {newAmount && (
@@ -731,7 +731,7 @@ export function CustomerDetails() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5">
                   Reason / Description *
                 </label>
                 <Input
@@ -812,7 +812,7 @@ export function CustomerDetails() {
             <div className="space-y-4 my-4">
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                  <label className="text-[11px] font-bold text-gray-500">
                     Amount (₹) *
                   </label>
                   {editAmount && (
@@ -855,7 +855,7 @@ export function CustomerDetails() {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-gray-500 mb-1.5">
+                <label className="block text-[11px] font-bold text-gray-500 mb-1.5">
                   Reason / Description *
                 </label>
                 <Input

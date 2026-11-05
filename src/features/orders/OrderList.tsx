@@ -201,7 +201,7 @@ export function OrderList() {
             {/* Desktop Table (Hidden on small screens) */}
             <div className="hidden md:block overflow-x-auto rounded-xl border border-gray-100">
               <table className="w-full text-left text-sm text-gray-500">
-                <thead className="text-xs text-gray-700 uppercase bg-gray-50/50 border-b border-gray-100">
+                <thead className="text-xs text-gray-700 bg-gray-50/50 border-b border-gray-100">
                   <tr>
                     <th scope="col" className="px-6 py-4 font-semibold">Order</th>
                     <th scope="col" className="px-6 py-4 font-semibold">Customer</th>

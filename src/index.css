@@ -5,8 +5,8 @@
   --color-primary-dark: #6b4423;
   --color-secondary: #f4e8d8;
   
-  --font-sans: 'DM Sans', system-ui, sans-serif;
-  --font-display: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Figtree', system-ui, sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
 }
 
 :root {
@@ -82,4 +82,19 @@ button, [role="button"], a {
 
 .animate-slide-up {
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Design tokens: cocoa ink, brownie action, crumb tint, semantic stock colours */
+.font-display { font-family: var(--font-display); font-feature-settings: 'lnum' 1, 'tnum' 1; letter-spacing: -0.01em; }
+
+/* Tactile press feedback for tappable cards/buttons */
+.press { transition: transform 120ms ease, box-shadow 120ms ease; cursor: pointer; }
+.press:active { transform: scale(0.98); }
+
+/* Minimum comfortable text on mobile; avoid iOS zoom on focus */
+input, select, textarea { font-size: 16px; }
+@media (min-width: 768px) { input, select, textarea { font-size: 14px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }

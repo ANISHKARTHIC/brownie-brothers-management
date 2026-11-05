@@ -9,9 +9,10 @@ import {
   Plus,
   ArrowRight,
   ClipboardList,
-  Cookie,
   CheckCircle2,
   Phone,
+  Boxes,
+  PackageX,
 } from 'lucide-react'
 
 function getGreeting() {
@@ -28,9 +29,18 @@ type OutstandingCustomer = {
   outstanding: number
 }
 
+type LowItem = { id: string; name: string; unit: string; current_stock: number; min_stock: number }
+
 export function Dashboard() {
   const { profile } = useAuth()
   const navigate = useNavigate()
+  const { data: lowStock = [] } = useQuery<LowItem[]>({
+    queryKey: ['stock-items', 'low'],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from('inventory_items').select('id,name,unit,current_stock,min_stock')
+      return ((data || []) as LowItem[]).filter((i) => Number(i.current_stock) <= Number(i.min_stock))
+    },
+  })
 
   // 1. Fetch all customers
   const { data: customers = [], isLoading: isLoadingCustomers } = useQuery({
@@ -87,7 +97,7 @@ export function Dashboard() {
     { label: 'Customers', icon: Users, path: '/customers', color: 'text-[#8b5a2b]', bg: 'bg-[#f4e8d8]' },
     { label: 'New Customer', icon: Plus, path: '/customers/new', color: 'text-amber-700', bg: 'bg-amber-100' },
     { label: 'Orders', icon: ClipboardList, path: '/orders', color: 'text-orange-600', bg: 'bg-orange-50' },
-    { label: 'Products', icon: Cookie, path: '/products', color: 'text-rose-600', bg: 'bg-rose-50' },
+    { label: 'Stock', icon: Boxes, path: '/stock', color: 'text-[#4f7a4a]', bg: 'bg-[#e9f0e4]' },
   ]
 
   return (
@@ -95,11 +105,11 @@ export function Dashboard() {
       {/* Header Greeting */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
-          <p className="text-[#a58f7f] text-[11px] font-bold uppercase tracking-[0.18em]">
+          <p className="text-[#84766c] text-sm font-medium">
             {format(new Date(), 'EEEE, d MMMM yyyy')}
           </p>
-          <h1 className="font-[var(--font-display)] text-3xl md:text-4xl font-bold tracking-tight text-[#3d2b20] mt-2">
-            {getGreeting()}, {profile?.full_name?.split(' ')[0] || 'Baker'} 👋
+          <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-[#3d2b20] mt-1">
+            {getGreeting()}, {profile?.full_name?.split(' ')[0] || 'Baker'}
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -108,7 +118,7 @@ export function Dashboard() {
             className="inline-flex items-center gap-2 bg-[#8b5a2b] hover:bg-[#6b4423] text-white px-4 py-3 rounded-2xl text-sm font-semibold shadow-[0_8px_18px_rgba(107,68,35,0.18)] transition-all"
           >
             <Plus className="h-4 w-4" />
-            Add Customer
+            Add customer
           </button>
         </div>
       </div>
@@ -118,22 +128,22 @@ export function Dashboard() {
         {/* Outstanding Card */}
         <div
           onClick={() => navigate('/customers')}
-          className="cursor-pointer bg-gradient-to-br from-[#9c6837] via-[#8b5a2b] to-[#6b4423] rounded-[1.75rem] p-5 sm:p-6 text-white shadow-[0_12px_28px_rgba(107,68,35,0.2)] hover:shadow-lg active:scale-[0.98] transition-all duration-200 relative overflow-hidden"
+          className="cursor-pointer bg-[#3d2b20] rounded-[1.75rem] p-5 sm:p-6 text-white shadow-[0_12px_28px_rgba(107,68,35,0.2)] hover:shadow-lg press transition-all duration-200 relative overflow-hidden"
         >
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-orange-200/80 text-xs font-semibold uppercase tracking-widest mb-1">
+              <p className="text-[#e8d5bc] text-sm font-medium mb-1">
                 Customer Outstanding
               </p>
-              <p className="text-3xl md:text-4xl font-bold tabular-nums">
+              <p className="font-display text-4xl md:text-5xl font-bold tabular-nums">
                 ₹{totalOutstanding.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </p>
             </div>
             <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-sm">
-              <AlertCircle className="h-6 w-6 text-orange-200" />
+              <AlertCircle className="h-6 w-6 text-[#e8d5bc]" />
             </div>
           </div>
-          <div className="mt-5 flex items-center justify-between text-xs text-orange-200/90 pt-3 border-t border-white/15">
+          <div className="mt-5 flex items-center justify-between text-xs text-[#e8d5bc] pt-3 border-t border-white/15">
             <span>
               {isLoadingOutstanding
                 ? 'Calculating...'
@@ -142,7 +152,7 @@ export function Dashboard() {
                 : 'All customer dues are cleared'}
             </span>
             <span className="flex items-center gap-1 font-semibold text-white">
-              View Dues <ArrowRight className="h-3.5 w-3.5" />
+              View dues <ArrowRight className="h-3.5 w-3.5" />
             </span>
           </div>
         </div>
@@ -150,14 +160,14 @@ export function Dashboard() {
         {/* Total Customers Card */}
         <div
           onClick={() => navigate('/customers')}
-          className="cursor-pointer bg-[#fffdfa] rounded-[1.75rem] p-5 sm:p-6 border border-[#eee3d9] shadow-[0_8px_24px_rgba(74,45,24,0.05)] hover:shadow-md active:scale-[0.98] transition-all duration-200 flex flex-col justify-between"
+          className="cursor-pointer bg-[#fffdfa] rounded-[1.75rem] p-5 sm:p-6 border border-[#eee3d9] shadow-[0_8px_24px_rgba(74,45,24,0.05)] hover:shadow-md press transition-all duration-200 flex flex-col justify-between"
         >
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-gray-400 text-xs font-semibold uppercase tracking-widest mb-1">
+              <p className="text-[#84766c] text-sm font-medium mb-1">
                 Total Customers
               </p>
-              <p className="text-3xl md:text-4xl font-bold text-gray-900 tabular-nums">
+              <p className="font-display text-4xl md:text-5xl font-bold text-[#3d2b20] tabular-nums">
                 {isLoadingCustomers ? '...' : customers.length}
               </p>
             </div>
@@ -174,17 +184,31 @@ export function Dashboard() {
         </div>
       </div>
 
+      {lowStock.length > 0 && (
+        <button
+          onClick={() => navigate('/stock')}
+          className="press w-full flex items-center gap-3 p-4 rounded-2xl bg-[#fbeceb] border border-[#f0c9c5] text-left"
+        >
+          <PackageX className="h-5 w-5 text-[#b4382f] shrink-0" />
+          <span className="flex-1 min-w-0 text-sm text-[#7a2a23]">
+            <b>{lowStock.length} ingredient{lowStock.length > 1 ? 's' : ''} running low</b>
+            <span className="block truncate text-[#9a4a43]">{lowStock.slice(0, 4).map((i) => i.name).join(', ')}</span>
+          </span>
+          <ArrowRight className="h-4 w-4 text-[#b4382f] shrink-0" />
+        </button>
+      )}
+
       {/* Quick Action Buttons */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3 px-1">
-          Quick Actions
+        <p className="text-sm font-semibold text-[#84766c] mb-3 px-1">
+          Quick actions
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
           {quickLinks.map((link) => (
             <button
               key={link.label}
               onClick={() => navigate(link.path)}
-              className="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 active:scale-95 transition-all text-left"
+              className="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 press transition-all text-left"
             >
               <div className={`p-2.5 rounded-xl ${link.bg} flex-shrink-0`}>
                 <link.icon className={`h-5 w-5 ${link.color}`} />
@@ -195,18 +219,18 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Pending Customer Dues Section */}
+      {/* Pending dues Section */}
       <div>
         <div className="flex items-center justify-between mb-3 px-1">
           <div>
-            <h2 className="text-base font-bold text-gray-900">Pending Customer Dues</h2>
+            <h2 className="text-base font-bold text-gray-900">Pending dues</h2>
             <p className="text-xs text-gray-500">Tap any customer to view details or change their outstanding</p>
           </div>
           <button
             onClick={() => navigate('/customers')}
             className="text-xs font-semibold text-[#8b5a2b] hover:text-[#6b4423] transition-colors"
           >
-            View all customers →
+            View all
           </button>
         </div>
 
@@ -220,7 +244,7 @@ export function Dashboard() {
             <div className="p-3 bg-green-50 rounded-2xl w-fit mx-auto mb-2">
               <CheckCircle2 className="h-8 w-8 text-green-600" />
             </div>
-            <h3 className="text-sm font-bold text-gray-900">All Cleared!</h3>
+            <h3 className="text-sm font-bold text-gray-900">All dues cleared</h3>
             <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto">
               There are no pending customer dues at the moment.
             </p>
@@ -250,10 +274,10 @@ export function Dashboard() {
 
                 <div className="flex items-center gap-3 flex-shrink-0 ml-4">
                   <div className="text-right">
-                    <p className="text-sm font-bold text-orange-600 tabular-nums">
+                    <p className="text-sm font-bold text-[#b4382f] tabular-nums">
                       ₹{cust.outstanding.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </p>
-                    <span className="text-[10px] font-semibold text-orange-400 uppercase tracking-wider">
+                    <span className="text-[10px] font-semibold text-orange-400">
                       Owed
                     </span>
                   </div>

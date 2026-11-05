@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/Button'
 import {
   ClipboardList,
   Cookie,
-  Package,
   ChefHat,
   BarChart3,
   Settings,
@@ -21,7 +20,6 @@ const MENU_SECTIONS = [
     items: [
       { name: 'Orders', path: '/orders', icon: ClipboardList, color: 'bg-orange-50 text-orange-600', description: 'View and manage orders' },
       { name: 'Products', path: '/products', icon: Cookie, color: 'bg-amber-50 text-amber-600', description: 'Manage your product catalog' },
-      { name: 'Inventory', path: '/inventory', icon: Package, color: 'bg-blue-50 text-blue-600', description: 'Track stock levels' },
       { name: 'Prep Board', path: '/production', icon: ChefHat, color: 'bg-purple-50 text-purple-600', description: 'Kitchen preparation board' },
     ],
   },
@@ -64,7 +62,7 @@ export function MoreMenu() {
       {/* Menu Sections */}
       {MENU_SECTIONS.map((section) => (
         <div key={section.title}>
-          <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3 px-1">
+          <p className="text-xs font-bold text-gray-400 mb-3 px-1">
             {section.title}
           </p>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-50 overflow-hidden">
